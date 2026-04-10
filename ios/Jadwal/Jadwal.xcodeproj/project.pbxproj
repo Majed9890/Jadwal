@@ -21,6 +21,14 @@
 		4E6AB03E2F7B25BF0004E859 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4EEA05D32F89203600F1A6B9 /* Attendee */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Attendee;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		4EE7445B2F57A39300FDE88A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -43,6 +51,7 @@
 		4E6AB0402F7B25BF0004E859 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4EEA05D32F89203600F1A6B9 /* Attendee */,
 				4E6AB03F2F7B25BF0004E859 /* Auth */,
 			);
 			path = Views;
@@ -79,6 +88,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4EEA05D32F89203600F1A6B9 /* Attendee */,
 			);
 			name = Jadwal;
 			packageProductDependencies = (
