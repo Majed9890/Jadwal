@@ -7,6 +7,7 @@ const eventRoutes = require('./src/routes/eventRoutes');
 const attendeeRoutes = require('./src/routes/attendeeRoutes');
 const ticketRoutes = require('./src/routes/ticketRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/attendee', attendeeRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Jadwal API is running' });
