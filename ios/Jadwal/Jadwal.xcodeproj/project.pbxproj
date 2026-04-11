@@ -22,6 +22,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		4E8E9D7C2F8ACD590028D724 /* Admin */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Admin;
+			sourceTree = "<group>";
+		};
 		4EEA05D32F89203600F1A6B9 /* Attendee */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Attendee;
@@ -56,6 +61,7 @@
 		4E6AB0402F7B25BF0004E859 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4E8E9D7C2F8ACD590028D724 /* Admin */,
 				4EEA05EF2F89417700F1A6B9 /* Organizer */,
 				4EEA05D32F89203600F1A6B9 /* Attendee */,
 				4E6AB03F2F7B25BF0004E859 /* Auth */,
@@ -96,6 +102,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				4E8E9D7C2F8ACD590028D724 /* Admin */,
 				4EEA05D32F89203600F1A6B9 /* Attendee */,
 				4EEA05EF2F89417700F1A6B9 /* Organizer */,
 			);
