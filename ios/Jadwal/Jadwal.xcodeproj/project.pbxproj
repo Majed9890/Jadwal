@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E8E9D872F8AD6E80028D724 /* MainTapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E9D862F8AD6DB0028D724 /* MainTapView.swift */; };
 		4E9CBF142F7D951200DAEA70 /* JadwalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6AB03D2F7B25BF0004E859 /* JadwalApp.swift */; };
 		4E9CBF152F7D952200DAEA70 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6AB03E2F7B25BF0004E859 /* LoginView.swift */; };
 		4E9CBF162F7D952900DAEA70 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6AB03B2F7B25BF0004E859 /* ContentView.swift */; };
@@ -19,6 +20,7 @@
 		4E6AB03C2F7B25BF0004E859 /* Jadwal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Jadwal.xcodeproj; sourceTree = "<group>"; };
 		4E6AB03D2F7B25BF0004E859 /* JadwalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JadwalApp.swift; sourceTree = "<group>"; };
 		4E6AB03E2F7B25BF0004E859 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		4E8E9D862F8AD6DB0028D724 /* MainTapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -61,6 +63,7 @@
 		4E6AB0402F7B25BF0004E859 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4E8E9D862F8AD6DB0028D724 /* MainTapView.swift */,
 				4E8E9D7C2F8ACD590028D724 /* Admin */,
 				4EEA05EF2F89417700F1A6B9 /* Organizer */,
 				4EEA05D32F89203600F1A6B9 /* Attendee */,
@@ -168,6 +171,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E8E9D872F8AD6E80028D724 /* MainTapView.swift in Sources */,
 				4E9CBF152F7D952200DAEA70 /* LoginView.swift in Sources */,
 				4E9CBF142F7D951200DAEA70 /* JadwalApp.swift in Sources */,
 				4E9CBF162F7D952900DAEA70 /* ContentView.swift in Sources */,

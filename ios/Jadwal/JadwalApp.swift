@@ -4,7 +4,7 @@ import SwiftUI
 struct JadwalApp: App {
     var body: some Scene {
         WindowGroup {
-            PendingEventsView()
+            LoginView()
         }
     }
 }
