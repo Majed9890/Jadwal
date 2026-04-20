@@ -76,5 +76,21 @@ const likeEvent = async (req, res) => {
 
     res.json({ message: 'event liked' });
 };
+// get attendee profile
+const getProfile = async (req, res) => {
+    const attendee_id = req.user.id;
+
+    const { data, error } = await supabase
+        .from('Attendee')
+        .select('name, phone_number, city, date_of_birth, gender, email')
+        .eq('attendee_id', attendee_id)
+        .single();
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ attendee: data });
+};
 
 module.exports = { editProfile, updateInterests, likeEvent, getProfile };
