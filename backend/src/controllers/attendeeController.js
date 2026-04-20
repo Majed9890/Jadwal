@@ -77,4 +77,4 @@ const likeEvent = async (req, res) => {
     res.json({ message: 'event liked' });
 };
 
-module.exports = { editProfile, updateInterests, likeEvent };
+module.exports = { editProfile, updateInterests, likeEvent, getProfile };
