@@ -92,5 +92,23 @@ const getProfile = async (req, res) => {
 
     res.json({ attendee: data });
 };
+// check if attendee liked an event
+const checkLike = async (req, res) => {
+    const attendee_id = req.user.id;
+    const { event_id } = req.params;
 
-module.exports = { editProfile, updateInterests, likeEvent, getProfile };
+    const { data, error } = await supabase
+        .from('Interaction')
+        .select('*')
+        .eq('attendee_id', attendee_id)
+        .eq('event_id', event_id)
+        .eq('interaction_type', 'like')
+        .single();
+
+    if (error) {
+        return res.json({ liked: false });
+    }
+
+    res.json({ liked: data ? true : false });
+};
+module.exports = { editProfile, updateInterests, likeEvent, getProfile, checkLike };
