@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     let role: String
+    @Binding var isLoggedIn: Bool
     
     var body: some View {
         TabView {
@@ -18,7 +19,7 @@ struct MainTabView: View {
                         Text("My Tickets")
                     }
                 
-                EditProfileView()
+                EditProfileView(isLoggedIn: $isLoggedIn)
                     .tabItem {
                         Image(systemName: "person")
                         Text("Profile")
@@ -54,23 +55,24 @@ struct MainTabView: View {
                     .tabItem {
                         Image(systemName: "person.badge.clock")
                         Text("Organizers")
-                    }
-                PendingEventsView()
-                                    .tabItem {
-                                        Image(systemName: "clock")
-                                        Text("Events")
+                                            }
+                                        
+                                        PendingEventsView()
+                                            .tabItem {
+                                                Image(systemName: "clock")
+                                                Text("Events")
+                                            }
+                                        
+                                        GlobalAnalyticsView()
+                                            .tabItem {
+                                                Image(systemName: "chart.pie")
+                                                Text("Analytics")
+                                            }
                                     }
-                                
-                                GlobalAnalyticsView()
-                                    .tabItem {
-                                        Image(systemName: "chart.pie")
-                                        Text("Analytics")
-                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                #Preview {
-                    MainTabView(role: "attendee")
-                }
+                        #Preview {
+                            MainTabView(role: "attendee", isLoggedIn: .constant(true))
+                        }

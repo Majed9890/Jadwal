@@ -2,52 +2,100 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var searchText = ""
-    
-    let dummyEvents = [
-        ["name": "Rock Concert", "category": "music", "city": "Riyadh", "price": "150"],
-        ["name": "Art Exhibition", "category": "art", "city": "Jeddah", "price": "50"],
-        ["name": "Football Match", "category": "sports", "city": "Riyadh", "price": "200"],
-        ["name": "Tech Conference", "category": "technology", "city": "Dammam", "price": "300"]
-    ]
+    @State private var events: [[String: Any]] = []
+    @State private var isLoading = true
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // search bar
-                TextField("Search events...", text: $searchText)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 10)
+                TextField("Search events...", text: $searchText, onCommit: {
+                    searchEvents()
+                })
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
                 
-                // event list
-                List(dummyEvents, id: \.self) { event in
-                    NavigationLink(destination: EventDetailsView(event: event)) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(event["name"] ?? "")
-                                .font(.headline)
-                            Text(event["category"] ?? "")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            HStack {
-                                Text(event["city"] ?? "")
-                                Spacer()
-                                Text("SAR \(event["price"] ?? "")")
-                                    .fontWeight(.bold)
+                if isLoading {
+                    Spacer()
+                    ProgressView("Loading events...")
+                    Spacer()
+                } else if events.isEmpty {
+                    Spacer()
+                    Text("No events found")
+                        .foregroundColor(.gray)
+                    Spacer()
+                } else {
+                    List(0..<events.count, id: \.self) { index in
+                        let event = events[index]
+                        NavigationLink(destination: EventDetailsView(event: event)) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(event["event_name"] as? String ?? "")
+                                    .font(.headline)
+                                Text(event["category"] as? String ?? "")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                HStack {
+                                    Text(event["city"] as? String ?? "")
+                                    Spacer()
+                                    Text("SAR \(event["base_price"] as? Int ?? 0)")
+                                        .fontWeight(.bold)
+                                }
+                                .font(.caption)
                             }
-                            .font(.caption)
+                            .padding(.vertical, 5)
                         }
-                        .padding(.vertical, 5)
                     }
                 }
             }
             .navigationTitle("Jadwal")
+            .onAppear {
+                fetchEvents()
+            }
         }
+    }
+    
+    func fetchEvents() {
+        let url = URL(string: "http://localhost:3000/api/events/search?keyword=")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+            
+            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let eventList = result["events"] as? [[String: Any]] {
+                DispatchQueue.main.async {
+                    events = eventList
+                    isLoading = false
+                }
+            }
+        }.resume()
+    }
+    
+    func searchEvents() {
+        let keyword = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let url = URL(string: "http://localhost:3000/api/events/search?keyword=\(keyword)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+            
+            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let eventList = result["events"] as? [[String: Any]] {
+                DispatchQueue.main.async {
+                    events = eventList
+                    isLoading = false
+                }
+            }
+        }.resume()
     }
 }
 
 #Preview {
     HomeView()
 }
-

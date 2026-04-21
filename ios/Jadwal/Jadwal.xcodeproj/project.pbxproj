@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E1BCDD92F924AA2005AFBD0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1BCDD82F924A8F005AFBD0 /* AuthManager.swift */; };
 		4E8E9D872F8AD6E80028D724 /* MainTapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E9D862F8AD6DB0028D724 /* MainTapView.swift */; };
 		4E9CBF142F7D951200DAEA70 /* JadwalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6AB03D2F7B25BF0004E859 /* JadwalApp.swift */; };
 		4E9CBF152F7D952200DAEA70 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6AB03E2F7B25BF0004E859 /* LoginView.swift */; };
@@ -14,6 +15,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4E1BCDD82F924A8F005AFBD0 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		4E1BCDDB2F9254D0005AFBD0 /* Jadwal-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Jadwal-Info.plist"; sourceTree = "<group>"; };
 		4E6AB0392F7B25690004E859 /* Jadwal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jadwal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E6AB03A2F7B25BF0004E859 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4E6AB03B2F7B25BF0004E859 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -80,6 +83,8 @@
 		4EE744552F57A39300FDE88A = {
 			isa = PBXGroup;
 			children = (
+				4E1BCDDB2F9254D0005AFBD0 /* Jadwal-Info.plist */,
+				4E1BCDD82F924A8F005AFBD0 /* AuthManager.swift */,
 				4E6AB03A2F7B25BF0004E859 /* Assets.xcassets */,
 				4E6AB03B2F7B25BF0004E859 /* ContentView.swift */,
 				4E6AB03C2F7B25BF0004E859 /* Jadwal.xcodeproj */,
@@ -172,6 +177,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4E8E9D872F8AD6E80028D724 /* MainTapView.swift in Sources */,
+				4E1BCDD92F924AA2005AFBD0 /* AuthManager.swift in Sources */,
 				4E9CBF152F7D952200DAEA70 /* LoginView.swift in Sources */,
 				4E9CBF142F7D951200DAEA70 /* JadwalApp.swift in Sources */,
 				4E9CBF162F7D952900DAEA70 /* ContentView.swift in Sources */,
@@ -309,6 +315,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Jadwal-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -340,6 +347,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Jadwal-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

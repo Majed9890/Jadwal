@@ -3,6 +3,8 @@ import SwiftUI
 struct UpdateInterestsView: View {
     let allInterests = ["music", "sports", "art", "technology", "food", "travel", "fashion", "gaming"]
     @State private var selectedInterests: Set<String> = []
+    @State private var errorMessage = ""
+    @State private var successMessage = ""
     
     var body: some View {
         VStack(spacing: 20) {
@@ -27,29 +29,67 @@ struct UpdateInterestsView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(selectedInterests.contains(interest) ? Color.blue : Color(.systemGray6))
-                            .foregroundColor(selectedInterests.contains(interest) ? .white : .black)
-                            .cornerRadius(10)
-                    }
-                }
-            }
-            
-            Button(action: {
-                // TODO: connect to API
-            }) {
-                Text("Save Changes")
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(selectedInterests.isEmpty ? Color.gray : Color.blue)
-                    .cornerRadius(10)
-            }
-            .disabled(selectedInterests.isEmpty)
-            
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-    }
-}
-#Preview {
-    UpdateInterestsView()
-}
+                                                        .foregroundColor(selectedInterests.contains(interest) ? .white : .black)
+                                                        .cornerRadius(10)
+                                                }
+                                            }
+                                        }
+                                        
+                                        if !errorMessage.isEmpty {
+                                            Text(errorMessage)
+                                                .foregroundColor(.red)
+                                                .font(.caption)
+                                        }
+                                        
+                                        if !successMessage.isEmpty {
+                                            Text(successMessage)
+                                                .foregroundColor(.green)
+                                                .font(.caption)
+                                        }
+                                        
+                                        Button(action: {
+                                            saveInterests()
+                                        }) {
+                                            Text("Save Changes")
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity)
+                                                .padding()
+                                                .background(selectedInterests.isEmpty ? Color.gray : Color.blue)
+                                                .cornerRadius(10)
+                                        }
+                                        .disabled(selectedInterests.isEmpty)
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 24)
+                                }
+                                
+                                func saveInterests() {
+                                    let url = URL(string: "http://localhost:3000/api/attendee/update-interests")!
+                                    var request = URLRequest(url: url)
+                                    request.httpMethod = "PUT"
+                                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                                    request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
+                                    
+                                    let body: [String: Any] = ["interests": Array(selectedInterests)]
+                                    request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+                                    
+                                    URLSession.shared.dataTask(with: request) { data, response, error in
+                                        guard let data = data else { return }
+                                        
+                                        if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                                                        DispatchQueue.main.async {
+                                                            if let message = result["message"] as? String {
+                                                                successMessage = message
+                                                            } else if let err = result["error"] as? String {
+                                                                errorMessage = err
+                                                            }
+                                                        }
+                                                    }
+                                                }.resume()
+                                            }
+                                        }
+
+                                        #Preview {
+                                            UpdateInterestsView()
+                                        }
