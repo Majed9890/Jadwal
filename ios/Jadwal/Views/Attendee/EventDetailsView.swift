@@ -11,8 +11,23 @@ struct EventDetailsView: View {
                     .fill(Color(.systemGray5))
                     .frame(height: 200)
                     .overlay(
-                        Text("Event Image")
-                            .foregroundColor(.gray)
+                        HStack {
+                            Spacer()
+                            VStack {
+                                Button(action: {
+                                    isLiked.toggle()
+                                    if isLiked {
+                                        likeEvent()
+                                    }
+                                }) {
+                                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                                        .foregroundColor(isLiked ? .red : .white)
+                                        .font(.title)
+                                        .padding()
+                                }
+                                Spacer()
+                            }
+                        }
                     )
                 
                 VStack(alignment: .leading, spacing: 10) {
@@ -26,20 +41,11 @@ struct EventDetailsView: View {
                     Text("City: \(event["city"] as? String ?? "")")
                         .foregroundColor(.gray)
                     
+                    Text("Location: \(event["location"] as? String ?? "")")
+                        .foregroundColor(.gray)
+                    
                     Text("Price: SAR \(event["base_price"] as? Int ?? 0)")
                         .font(.headline)
-                    
-                    Button(action: {
-                        isLiked.toggle()
-                        likeEvent()
-                    }) {
-                        HStack {
-                            Image(systemName: isLiked ? "heart.fill" : "heart")
-                                .foregroundColor(isLiked ? .red : .gray)
-                            Text(isLiked ? "Liked" : "Like")
-                                .foregroundColor(isLiked ? .red : .gray)
-                        }
-                    }
                     
                     NavigationLink(destination: PurchaseTicketView(event: event)) {
                         Text("Buy Ticket")
@@ -55,6 +61,28 @@ struct EventDetailsView: View {
         }
         .navigationTitle("Event Details")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            checkLike()
+        }
+    }
+    
+    func checkLike() {
+        guard let eventId = event["event_id"] as? String else { return }
+        
+        let url = URL(string: "http://localhost:3000/api/attendee/check-like/\(eventId)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+            
+            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                DispatchQueue.main.async {
+                    isLiked = result["liked"] as? Bool ?? false
+                }
+            }
+        }.resume()
     }
     
     func likeEvent() {

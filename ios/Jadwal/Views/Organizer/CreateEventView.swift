@@ -6,6 +6,8 @@ struct CreateEventView: View {
     @State private var description = ""
     @State private var location = ""
     @State private var city = ""
+    @State private var district = ""
+    @State private var roadName = ""
     @State private var startDate = ""
     @State private var endDate = ""
     @State private var time = ""
@@ -43,6 +45,16 @@ struct CreateEventView: View {
                     .cornerRadius(10)
                 
                 TextField("City", text: $city)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                
+                TextField("District", text: $district)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                
+                TextField("Road Name", text: $roadName)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
@@ -118,6 +130,8 @@ struct CreateEventView: View {
             "description": description,
             "location": location,
             "city": city,
+            "district": district,
+            "road_name": roadName,
             "start_date": startDate,
             "end_date": endDate,
             "time": time,
@@ -140,6 +154,8 @@ struct CreateEventView: View {
                         description = ""
                         location = ""
                         city = ""
+                        district = ""
+                        roadName = ""
                         startDate = ""
                         endDate = ""
                         time = ""
