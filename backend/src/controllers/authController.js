@@ -36,7 +36,7 @@ const registerAttendee = async (req, res) => {
         .from('Attendee')
         .select('email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
     if (existingUser) {
         return res.status(400).json({ error: 'this email is already registered' });
@@ -80,7 +80,7 @@ const registerOrganizer = async (req, res) => {
         .from('Organizer')
         .select('email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
     if (existingUser) {
         return res.status(400).json({ error: 'this email is already registered' });
@@ -130,7 +130,7 @@ const verifyOTP = async (req, res) => {
         .from(tableName)
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
     if (!user) {
         return res.status(404).json({ error: 'user not found' });
@@ -183,7 +183,7 @@ const login = async (req, res) => {
         .from(tableName)
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
     if (!user) {
         return res.status(404).json({ error: 'user not found' });
