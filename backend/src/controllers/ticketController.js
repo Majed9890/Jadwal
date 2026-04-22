@@ -69,7 +69,6 @@ const purchaseTicket = async (req, res) => {
         .update({ available_tickets: event.available_tickets - quantity })
         .eq('event_id', event_id);
 
-    // get attendee email
     const { data: attendee } = await supabase
         .from('Attendee')
         .select('email')
@@ -120,7 +119,6 @@ const refreshOTP = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
-    // get attendee email and send otp
     const { data: attendee } = await supabase
         .from('Attendee')
         .select('email')
@@ -161,6 +159,12 @@ const viewQRCode = async (req, res) => {
     }
 
     const timestamp = new Date().toISOString();
+
+    // save timestamp to ticket
+    await supabase
+        .from('Ticket')
+        .update({ qr_timestamp: timestamp })
+        .eq('ticket_id', ticket_id);
 
     const qrData = JSON.stringify({
         ticket_id: ticket.ticket_id,

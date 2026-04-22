@@ -34,17 +34,16 @@ const updateInterests = async (req, res) => {
         return res.status(400).json({ error: 'you should select at least one interest' });
     }
 
-    // delete old interests first
     await supabase
         .from('Attendee_Interests')
         .delete()
         .eq('attendee_id', attendee_id);
 
-    // add new interests
     const newInterests = interests.map(interest => ({
         attendee_id: attendee_id,
         interests: interest
     }));
+
     const { data, error } = await supabase
         .from('Attendee_Interests')
         .insert(newInterests);
@@ -56,12 +55,31 @@ const updateInterests = async (req, res) => {
     res.json({ message: 'interests updated' });
 };
 
-// like event
+// like or unlike event
 const likeEvent = async (req, res) => {
     const attendee_id = req.user.id;
     const { event_id } = req.body;
 
-    const { data, error } = await supabase
+    const { data: existing } = await supabase
+        .from('Interaction')
+        .select('*')
+        .eq('attendee_id', attendee_id)
+        .eq('event_id', event_id)
+        .eq('interaction_type', 'like')
+        .single();
+
+    if (existing) {
+        await supabase
+            .from('Interaction')
+            .delete()
+            .eq('attendee_id', attendee_id)
+            .eq('event_id', event_id)
+            .eq('interaction_type', 'like');
+
+        return res.json({ message: 'event unliked', liked: false });
+    }
+
+    const { error } = await supabase
         .from('Interaction')
         .insert([{
             attendee_id: attendee_id,
@@ -74,8 +92,9 @@ const likeEvent = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
-    res.json({ message: 'event liked' });
+    res.json({ message: 'event liked', liked: true });
 };
+
 // get attendee profile
 const getProfile = async (req, res) => {
     const attendee_id = req.user.id;
@@ -92,6 +111,7 @@ const getProfile = async (req, res) => {
 
     res.json({ attendee: data });
 };
+
 // check if attendee liked an event
 const checkLike = async (req, res) => {
     const attendee_id = req.user.id;
@@ -111,4 +131,5 @@ const checkLike = async (req, res) => {
 
     res.json({ liked: data ? true : false });
 };
+
 module.exports = { editProfile, updateInterests, likeEvent, getProfile, checkLike };

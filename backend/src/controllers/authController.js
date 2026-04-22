@@ -1,6 +1,26 @@
 const supabase = require('../config/supabase');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+
+// email transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+// send otp via email
+const sendOTPEmail = async (email, otp) => {
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Jadwal - Verify Your Account',
+        text: `Your OTP code is: ${otp}. It expires in 10 minutes.`
+    });
+};
 
 // this function makes a random 6 digit code for OTP
 function generateOTP() {
@@ -12,7 +32,6 @@ function generateOTP() {
 const registerAttendee = async (req, res) => {
     const { name, email, password, phone_number, date_of_birth, gender, city } = req.body;
 
-    // check if the email is already used
     const { data: existingUser } = await supabase
         .from('Attendee')
         .select('email')
@@ -23,10 +42,7 @@ const registerAttendee = async (req, res) => {
         return res.status(400).json({ error: 'this email is already registered' });
     }
 
-    // hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // generate otp and set expiry to 10 minutes
     const otp = generateOTP();
     const expiry = new Date();
     expiry.setMinutes(expiry.getMinutes() + 10);
@@ -51,8 +67,9 @@ const registerAttendee = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
-    // for now we return the otp in the response for testing
-    res.status(201).json({ message: 'registered successfully', otp: otp });
+    await sendOTPEmail(email, otp);
+
+    res.status(201).json({ message: 'registered successfully, check your email for OTP' });
 };
 
 // register a new organizer
@@ -95,14 +112,15 @@ const registerOrganizer = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
-    res.status(201).json({ message: 'organizer registered, waiting for admin approval', otp: otp });
+    await sendOTPEmail(email, otp);
+
+    res.status(201).json({ message: 'organizer registered, check your email for OTP' });
 };
 
 // verify the otp code
 const verifyOTP = async (req, res) => {
     const { email, otp_code, role } = req.body;
 
-    // decide which table to use based on role
     let tableName = 'Attendee';
     if (role === 'organizer') {
         tableName = 'Organizer';
@@ -118,19 +136,16 @@ const verifyOTP = async (req, res) => {
         return res.status(404).json({ error: 'user not found' });
     }
 
-    // check if otp matches
     if (user.otp_code !== otp_code) {
         return res.status(400).json({ error: 'wrong OTP' });
     }
 
-    // check if otp is expired
     const now = new Date();
     const expiry = new Date(user.expired_at);
     if (now > expiry) {
         return res.status(400).json({ error: 'OTP has expired' });
     }
 
-    // clear the otp after verification
     let idField = 'attendee_id';
     if (role === 'organizer') {
         idField = 'organizer_id';
@@ -148,7 +163,6 @@ const verifyOTP = async (req, res) => {
 const login = async (req, res) => {
     const { email, password, role } = req.body;
 
-    // pick the right table
     let tableName = '';
     let idField = '';
 
@@ -175,13 +189,11 @@ const login = async (req, res) => {
         return res.status(404).json({ error: 'user not found' });
     }
 
-    // compare the password
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
         return res.status(401).json({ error: 'wrong password' });
     }
 
-    // create a token
     const token = jwt.sign(
         { id: user[idField], email: user.email, role: role },
         process.env.JWT_SECRET,
