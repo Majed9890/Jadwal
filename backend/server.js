@@ -8,18 +8,19 @@ const attendeeRoutes = require('./src/routes/attendeeRoutes');
 const ticketRoutes = require('./src/routes/ticketRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const organizerRoutes = require('./src/routes/organizerRoutes');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/attendee', attendeeRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/organizer', organizerRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Jadwal API is running' });
