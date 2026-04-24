@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase');
+const { sendNotification } = require('./notificationController');
 
-// get all pending organizers
 const getPendingOrganizers = async (req, res) => {
     const { data, error } = await supabase
         .from('Organizer')
@@ -14,7 +14,6 @@ const getPendingOrganizers = async (req, res) => {
     res.json({ organizers: data });
 };
 
-// approve or reject organizer
 const updateOrganizerStatus = async (req, res) => {
     const { organizer_id, status } = req.body;
 
@@ -29,10 +28,15 @@ const updateOrganizerStatus = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
+    if (status === 'approved') {
+        await sendNotification(organizer_id, 'Your organizer account has been approved. You can now create events.');
+    } else if (status === 'rejected') {
+        await sendNotification(organizer_id, 'Your organizer account registration has been rejected.');
+    }
+
     res.json({ message: `organizer ${status}`, organizer: data });
 };
 
-// get all pending events
 const getPendingEvents = async (req, res) => {
     const { data, error } = await supabase
         .from('Event')
@@ -46,7 +50,6 @@ const getPendingEvents = async (req, res) => {
     res.json({ events: data });
 };
 
-// approve or reject event
 const updateEventStatus = async (req, res) => {
     const { event_id, status } = req.body;
 
@@ -61,9 +64,17 @@ const updateEventStatus = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
+    if (data && data.organizer_id) {
+        if (status === 'approved') {
+            await sendNotification(data.organizer_id, `Your event "${data.event_name}" has been approved and is now live.`);
+        } else if (status === 'rejected') {
+            await sendNotification(data.organizer_id, `Your event "${data.event_name}" has been rejected.`);
+        }
+    }
+
     res.json({ message: `event ${status}`, event: data });
 };
-// global analytics
+
 const getGlobalAnalytics = async (req, res) => {
     const { data: attendees, error: attendeeError } = await supabase
         .from('Attendee')
