@@ -29,7 +29,7 @@ const purchaseTicket = async (req, res) => {
 
     const { data: event, error: eventError } = await supabase
         .from('Event')
-        .select('available_tickets')
+        .select('available_tickets, ticket_sold, sales')
         .eq('event_id', event_id)
         .single();
 
@@ -65,9 +65,13 @@ const purchaseTicket = async (req, res) => {
     }
 
     await supabase
-        .from('Event')
-        .update({ available_tickets: event.available_tickets - quantity })
-        .eq('event_id', event_id);
+    .from('Event')
+    .update({
+        available_tickets: event.available_tickets - quantity,
+        ticket_sold: (event.ticket_sold || 0) + quantity,
+        sales: (event.sales || 0) + totalPrice
+    })
+    .eq('event_id', event_id);
 
     const { data: attendee } = await supabase
         .from('Attendee')
