@@ -2,7 +2,6 @@ const supabase = require('../config/supabase');
 const QRCode = require('qrcode');
 const nodemailer = require('nodemailer');
 
-// email transporter
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -11,24 +10,26 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// send otp via email
 const sendOTPEmail = async (email, otp) => {
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Jadwal - Your OTP Code',
-        text: `Your OTP code is: ${otp}. It expires in 2 minutes.`
-    });
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Jadwal - Your OTP Code',
+            text: `Your OTP code is: ${otp}. It expires in 2 minutes.`
+        });
+    } catch (err) {
+        console.log('email error:', err.message);
+    }
 };
 
-// purchase ticket
 const purchaseTicket = async (req, res) => {
     const attendee_id = req.user.id;
-    const { event_id, tier, quantity } = req.body;
+    const { event_id, tier, price, quantity } = req.body;
 
     const { data: event, error: eventError } = await supabase
         .from('Event')
-        .select('available_tickets, base_price')
+        .select('available_tickets')
         .eq('event_id', event_id)
         .single();
 
@@ -40,19 +41,18 @@ const purchaseTicket = async (req, res) => {
         return res.status(400).json({ error: 'not enough tickets available' });
     }
 
-    const price = event.base_price * quantity;
+    const totalPrice = price * quantity;
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date();
     expiry.setMinutes(expiry.getMinutes() + 2);
-
     const { data: ticket, error: ticketError } = await supabase
         .from('Ticket')
         .insert([{
             attendee_id: attendee_id,
             event_id: event_id,
             tier: tier,
-            price: price,
+            price: totalPrice,
             otp_code: otp,
             expired_at: expiry,
             ticket_status: 'active'
@@ -82,7 +82,6 @@ const purchaseTicket = async (req, res) => {
     res.status(201).json({ message: 'ticket purchased successfully', ticket: ticket });
 };
 
-// view my tickets
 const viewTickets = async (req, res) => {
     const attendee_id = req.user.id;
 
@@ -94,11 +93,9 @@ const viewTickets = async (req, res) => {
     if (error) {
         return res.status(500).json({ error: error.message });
     }
-
     res.json({ tickets: data });
 };
 
-// refresh otp when ticket is clicked
 const refreshOTP = async (req, res) => {
     const { ticket_id } = req.body;
     const attendee_id = req.user.id;
@@ -132,7 +129,6 @@ const refreshOTP = async (req, res) => {
     res.json({ message: 'otp sent to your email' });
 };
 
-// view qr code
 const viewQRCode = async (req, res) => {
     const { ticket_id, otp_code } = req.body;
     const attendee_id = req.user.id;
@@ -160,13 +156,11 @@ const viewQRCode = async (req, res) => {
 
     const timestamp = new Date().toISOString();
 
-    // save timestamp to ticket
     await supabase
         .from('Ticket')
         .update({ qr_timestamp: timestamp })
         .eq('ticket_id', ticket_id);
-
-    const qrData = JSON.stringify({
+        const qrData = JSON.stringify({
         ticket_id: ticket.ticket_id,
         event_id: ticket.event_id,
         attendee_id: ticket.attendee_id,
