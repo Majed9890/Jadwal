@@ -4,7 +4,7 @@ struct HomeView: View {
     @State private var searchText = ""
     @State private var events: [[String: Any]] = []
     @State private var isLoading = true
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -16,7 +16,7 @@ struct HomeView: View {
                 .cornerRadius(10)
                 .padding(.horizontal, 16)
                 .padding(.top, 10)
-                
+
                 if isLoading {
                     Spacer()
                     ProgressView("Loading events...")
@@ -39,7 +39,7 @@ struct HomeView: View {
                                 HStack {
                                     Text(event["city"] as? String ?? "")
                                     Spacer()
-                                    Text("SAR \(event["base_price"] as? Int ?? 0)")
+                                    Text("SAR \(event["ticket_type1_price"] as? Int ?? 0)")
                                         .fontWeight(.bold)
                                 }
                                 .font(.caption)
@@ -55,16 +55,16 @@ struct HomeView: View {
             }
         }
     }
-    
+
     func fetchEvents() {
         let url = URL(string: "http://localhost:3000/api/events/search?keyword=")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else { return }
-            
+
             if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let eventList = result["events"] as? [[String: Any]] {
                 DispatchQueue.main.async {
@@ -74,17 +74,17 @@ struct HomeView: View {
             }
         }.resume()
     }
-    
+
     func searchEvents() {
         let keyword = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let url = URL(string: "http://localhost:3000/api/events/search?keyword=\(keyword)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else { return }
-            
+
             if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let eventList = result["events"] as? [[String: Any]] {
                 DispatchQueue.main.async {

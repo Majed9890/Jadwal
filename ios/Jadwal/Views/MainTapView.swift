@@ -50,29 +50,35 @@ struct MainTabView: View {
                         Text("Notifications")
                     }
                 
+                OrganizerProfileView(isLoggedIn: $isLoggedIn)
+                    .tabItem {
+                        Image(systemName: "person")
+                        Text("Profile")
+                    }
+                
             } else if role == "admin" {
                 PendingOrganizersView()
                     .tabItem {
                         Image(systemName: "person.badge.clock")
                         Text("Organizers")
-                                            }
-                                        
-                                        PendingEventsView()
-                                            .tabItem {
-                                                Image(systemName: "clock")
-                                                Text("Events")
-                                            }
-                                        
-                                        GlobalAnalyticsView()
-                                            .tabItem {
-                                                Image(systemName: "chart.pie")
-                                                Text("Analytics")
-                                            }
-                                    }
-                                }
-                            }
-                        }
+                    }
+                
+                PendingEventsView()
+                    .tabItem {
+                        Image(systemName: "clock")
+                        Text("Events")
+                    }
+                
+                GlobalAnalyticsView()
+                    .tabItem {
+                        Image(systemName: "chart.pie")
+                        Text("Analytics")
+                    }
+            }
+        }
+    }
+}
 
-                        #Preview {
-                            MainTabView(role: "attendee", isLoggedIn: .constant(true))
-                        }
+#Preview {
+    MainTabView(role: "attendee", isLoggedIn: .constant(true))
+}
