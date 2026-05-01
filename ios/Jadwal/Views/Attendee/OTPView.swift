@@ -17,7 +17,7 @@ struct OTPView: View {
                     .fontWeight(.bold)
                     .padding(.top, 60)
                 
-                Text("Enter the OTP sent to your phone")
+                Text("Enter the OTP sent to your Email")
                     .foregroundColor(.gray)
                 
                 Spacer()

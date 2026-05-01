@@ -15,23 +15,25 @@ struct MyEventsView: View {
                 } else {
                     List(0..<events.count, id: \.self) { index in
                         let event = events[index]
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(event["event_name"] as? String ?? "")
-                                .font(.headline)
-                            Text(event["category"] as? String ?? "")
-                                .foregroundColor(.gray)
-                            HStack {
-                                Text(event["city"] as? String ?? "")
-                                Spacer()
-                                Text(event["event_status"] as? String ?? "")
-                                    .font(.caption)
-                                    .padding(5)
-                                    .background(statusColor(event["event_status"] as? String ?? ""))
-                                    .foregroundColor(.white)
-                                    .cornerRadius(5)
+                        NavigationLink(destination: OrganizerEventDetailView(event: event)) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(event["event_name"] as? String ?? "")
+                                    .font(.headline)
+                                Text(event["category"] as? String ?? "")
+                                    .foregroundColor(.gray)
+                                HStack {
+                                    Text(event["city"] as? String ?? "")
+                                    Spacer()
+                                    Text(event["event_status"] as? String ?? "")
+                                        .font(.caption)
+                                        .padding(5)
+                                        .background(statusColor(event["event_status"] as? String ?? ""))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(5)
+                                }
                             }
+                            .padding(.vertical, 5)
                         }
-                        .padding(.vertical, 5)
                     }
                 }
             }

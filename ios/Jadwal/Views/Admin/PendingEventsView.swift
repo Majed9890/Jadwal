@@ -1,10 +1,9 @@
-
 import SwiftUI
 
 struct PendingEventsView: View {
     @State private var events: [[String: Any]] = []
     @State private var isLoading = true
-    
+
     var body: some View {
         NavigationView {
             Group {
@@ -24,11 +23,11 @@ struct PendingEventsView: View {
                             HStack {
                                 Text(event["city"] as? String ?? "")
                                 Spacer()
-                                Text("SAR \(event["base_price"] as? Int ?? 0)")
+                                Text("SAR \(event["ticket_type1_price"] as? Int ?? 0)")
                                     .fontWeight(.bold)
                             }
                             .font(.caption)
-                            
+
                             HStack {
                                 Button(action: {
                                     updateStatus(event_id: event["event_id"] as? String ?? "", status: "approved")
@@ -40,7 +39,7 @@ struct PendingEventsView: View {
                                         .background(Color.green)
                                         .cornerRadius(8)
                                 }
-                                
+
                                 Button(action: {
                                     updateStatus(event_id: event["event_id"] as? String ?? "", status: "rejected")
                                 }) {
@@ -63,44 +62,44 @@ struct PendingEventsView: View {
             }
         }
     }
+
     func fetchEvents() {
-            let url = URL(string: "http://localhost:3000/api/admin/events/pending")!
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                guard let data = data else { return }
-                
-                if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let list = result["events"] as? [[String: Any]] {
-                    DispatchQueue.main.async {
-                        events = list
-                        isLoading = false
-                    }
-                }
-            }.resume()
-        }
-        
-        func updateStatus(event_id: String, status: String) {
-            let url = URL(string: "http://localhost:3000/api/admin/events/status")!
-            var request = URLRequest(url: url)
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-            
-            let body: [String: Any] = ["event_id": event_id, "status": status]
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
+        let url = URL(string: "http://localhost:3000/api/admin/events/pending")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+
+            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let list = result["events"] as? [[String: Any]] {
                 DispatchQueue.main.async {
-                    fetchEvents()
+                    events = list
+                    isLoading = false
                 }
-            }.resume()
-        }
+            }
+        }.resume()
     }
 
-    #Preview {
-        PendingEventsView()
-    }
+    func updateStatus(event_id: String, status: String) {
+        let url = URL(string: "http://localhost:3000/api/admin/events/status")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
 
+        let body: [String: Any] = ["event_id": event_id, "status": status]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                fetchEvents()
+            }
+        }.resume()
+    }
+}
+
+#Preview {
+    PendingEventsView()
+}
