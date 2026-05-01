@@ -66,13 +66,14 @@ const purchaseTicket = async (req, res) => {
     }
 
     await supabase
-    .from('Event')
-    .update({
-        available_tickets: event.available_tickets - quantity,
-        ticket_sold: (event.ticket_sold || 0) + quantity,
-        sales: (event.sales || 0) + totalPrice
-    })
-    .eq('event_id', event_id);
+        .from('Event')
+        .update({
+            available_tickets: event.available_tickets - quantity,
+            ticket_sold: (event.ticket_sold || 0) + quantity,
+            sales: (event.sales || 0) + totalPrice
+        })
+        .eq('event_id', event_id);
+
     const { data: attendee } = await supabase
         .from('Attendee')
         .select('email')
@@ -178,4 +179,29 @@ const viewQRCode = async (req, res) => {
     res.json({ message: 'qr code generated', qr_code: qrCode, timestamp: timestamp });
 };
 
-module.exports = { purchaseTicket, viewTickets, viewQRCode, refreshOTP };
+const checkInTicket = async (req, res) => {
+    const { ticket_id } = req.body;
+
+    const { data: ticket, error } = await supabase
+        .from('Ticket')
+        .select('*')
+        .eq('ticket_id', ticket_id)
+        .single();
+
+    if (error || !ticket) {
+        return res.status(404).json({ error: 'ticket not found' });
+    }
+
+    if (ticket.check_in) {
+        return res.status(400).json({ error: 'ticket already used' });
+    }
+
+    await supabase
+        .from('Ticket')
+        .update({ check_in: true })
+        .eq('ticket_id', ticket_id);
+
+    res.json({ message: 'ticket checked in successfully' });
+};
+
+module.exports = { purchaseTicket, viewTickets, viewQRCode, refreshOTP, checkInTicket };
