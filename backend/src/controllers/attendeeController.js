@@ -96,21 +96,24 @@ const likeEvent = async (req, res) => {
 };
 
 // get attendee profile
-const getProfile = async (req, res) => {
-    const attendee_id = req.user.id;
+const { data, error } = await supabase
+    .from('Attendee')
+    .select('name, phone_number, city, date_of_birth, gender, email')
+    .eq('attendee_id', attendee_id)
+    .single();
 
-    const { data, error } = await supabase
-        .from('Attendee')
-        .select('name, phone_number, city, date_of_birth, gender, email')
-        .eq('attendee_id', attendee_id)
-        .single();
+if (error) {
+    return res.status(500).json({ error: error.message });
+}
 
-    if (error) {
-        return res.status(500).json({ error: error.message });
-    }
+const { data: interestsData } = await supabase
+    .from('Attendee_Interests')
+    .select('interests')
+    .eq('attendee_id', attendee_id);
 
-    res.json({ attendee: data });
-};
+const interests = interestsData ? interestsData.map(i => i.interests) : [];
+
+res.json({ attendee: { ...data, interests: interests } });
 
 // check if attendee liked an event
 const checkLike = async (req, res) => {
