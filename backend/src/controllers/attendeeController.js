@@ -1,6 +1,5 @@
 const supabase = require('../config/supabase');
 
-// edit profile
 const editProfile = async (req, res) => {
     const attendee_id = req.user.id;
     const { name, phone_number, city, date_of_birth, gender } = req.body;
@@ -25,7 +24,6 @@ const editProfile = async (req, res) => {
     res.json({ message: 'profile updated', attendee: data });
 };
 
-// update interests
 const updateInterests = async (req, res) => {
     const attendee_id = req.user.id;
     const { interests } = req.body;
@@ -55,7 +53,6 @@ const updateInterests = async (req, res) => {
     res.json({ message: 'interests updated' });
 };
 
-// like or unlike event
 const likeEvent = async (req, res) => {
     const attendee_id = req.user.id;
     const { event_id } = req.body;
@@ -66,7 +63,7 @@ const likeEvent = async (req, res) => {
         .eq('attendee_id', attendee_id)
         .eq('event_id', event_id)
         .eq('interaction_type', 'like')
-        .single();
+        .maybeSingle();
 
     if (existing) {
         await supabase
@@ -95,27 +92,29 @@ const likeEvent = async (req, res) => {
     res.json({ message: 'event liked', liked: true });
 };
 
-// get attendee profile
-const { data, error } = await supabase
-    .from('Attendee')
-    .select('name, phone_number, city, date_of_birth, gender, email')
-    .eq('attendee_id', attendee_id)
-    .single();
+const getProfile = async (req, res) => {
+    const attendee_id = req.user.id;
 
-if (error) {
-    return res.status(500).json({ error: error.message });
-}
+    const { data, error } = await supabase
+        .from('Attendee')
+        .select('name, phone_number, city, date_of_birth, gender, email')
+        .eq('attendee_id', attendee_id)
+        .single();
 
-const { data: interestsData } = await supabase
-    .from('Attendee_Interests')
-    .select('interests')
-    .eq('attendee_id', attendee_id);
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
 
-const interests = interestsData ? interestsData.map(i => i.interests) : [];
+    const { data: interestsData } = await supabase
+        .from('Attendee_Interests')
+        .select('interests')
+        .eq('attendee_id', attendee_id);
 
-res.json({ attendee: { ...data, interests: interests } });
+    const interests = interestsData ? interestsData.map(i => i.interests) : [];
 
-// check if attendee liked an event
+    res.json({ attendee: { ...data, interests: interests } });
+};
+
 const checkLike = async (req, res) => {
     const attendee_id = req.user.id;
     const { event_id } = req.params;
@@ -126,7 +125,7 @@ const checkLike = async (req, res) => {
         .eq('attendee_id', attendee_id)
         .eq('event_id', event_id)
         .eq('interaction_type', 'like')
-        .single();
+        .maybeSingle();
 
     if (error) {
         return res.json({ liked: false });
