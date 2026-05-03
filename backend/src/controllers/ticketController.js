@@ -181,15 +181,20 @@ const viewQRCode = async (req, res) => {
 
 const checkInTicket = async (req, res) => {
     const { ticket_id } = req.body;
+    const organizer_id = req.user.id;
 
     const { data: ticket, error } = await supabase
         .from('Ticket')
-        .select('*')
+        .select('*, Event(organizer_id)')
         .eq('ticket_id', ticket_id)
         .single();
 
     if (error || !ticket) {
         return res.status(404).json({ error: 'ticket not found' });
+    }
+
+    if (ticket.Event.organizer_id !== organizer_id) {
+        return res.status(403).json({ error: 'this ticket does not belong to your event' });
     }
 
     if (ticket.check_in) {
