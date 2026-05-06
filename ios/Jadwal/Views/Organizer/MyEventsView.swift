@@ -3,7 +3,7 @@ import SwiftUI
 struct MyEventsView: View {
     @State private var events: [[String: Any]] = []
     @State private var isLoading = true
-    
+
     var body: some View {
         NavigationView {
             Group {
@@ -43,7 +43,7 @@ struct MyEventsView: View {
             }
         }
     }
-    
+
     func statusColor(_ status: String) -> Color {
         switch status {
         case "approved": return .green
@@ -51,16 +51,16 @@ struct MyEventsView: View {
         default: return .orange
         }
     }
-    
+
     func fetchEvents() {
-        let url = URL(string: "http://localhost:3000/api/events/my-events")!
+        let url = URL(string: "http://192.168.3.10:3000/api/events/my-events")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else { return }
-            
+
             if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let eventList = result["events"] as? [[String: Any]] {
                 DispatchQueue.main.async {

@@ -7,6 +7,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription
+</key>
+	<string>We need camera access to scan QR codes</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtbW1idmFjZ2JkbnRobnZvZ2J0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTA2MjUsImV4cCI6MjA4NjkyNjYyNX0.SEu9do-yDT2A3RjSPYLvrpLIuMKOPrqBn4TsGTh8p3o</string>
 </dict>

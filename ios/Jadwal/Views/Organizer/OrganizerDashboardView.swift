@@ -101,7 +101,7 @@ struct OrganizerDashboardView: View {
     }
     
     func fetchAllEvents() {
-        let url = URL(string: "http://localhost:3000/api/events/my-events")!
+        let url = URL(string: "http://192.168.3.10:3000/api/events/my-events")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -120,7 +120,7 @@ struct OrganizerDashboardView: View {
     }
     
     func fetchDashboard(eventId: String?) {
-        var urlString = "http://localhost:3000/api/events/dashboard"
+        var urlString = "http://192.168.3.10:3000/api/events/dashboard"
         if let id = eventId {
             urlString += "?event_id=\(id)"
         }

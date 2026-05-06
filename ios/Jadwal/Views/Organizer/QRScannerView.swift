@@ -2,11 +2,12 @@ import SwiftUI
 import AVFoundation
 
 struct QRScannerView: View {
-    let eventId: String
     @State private var scannedCode = ""
     @State private var resultMessage = ""
     @State private var resultColor = Color.green
     @State private var isScanning = true
+    @State private var cameraPermissionGranted = false
+    @State private var scannerID = UUID()
 
     var body: some View {
         VStack(spacing: 20) {
@@ -15,16 +16,28 @@ struct QRScannerView: View {
                 .fontWeight(.bold)
                 .padding(.top, 20)
 
-            ZStack {
-                CameraPreview(scannedCode: $scannedCode)
-                    .frame(height: 300)
-                    .cornerRadius(12)
+            if cameraPermissionGranted {
+                ZStack {
+                    CameraPreview(scannedCode: $scannedCode, isScanning: $isScanning)
+                        .id(scannerID)
+                        .frame(height: 300)
+                        .cornerRadius(12)
 
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.blue, lineWidth: 3)
+                        .frame(height: 300)
+                }
+                .padding(.horizontal, 16)
+            } else {
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.blue, lineWidth: 3)
+                    .fill(Color(.systemGray5))
                     .frame(height: 300)
+                    .overlay(
+                        Text("Camera access required")
+                            .foregroundColor(.gray)
+                    )
+                    .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
 
             if !resultMessage.isEmpty {
                 Text(resultMessage)
@@ -37,14 +50,11 @@ struct QRScannerView: View {
                     .padding(.horizontal, 16)
             }
 
-            if !scannedCode.isEmpty && isScanning {
-                ProgressView("Checking ticket...")
-            }
-
             Button(action: {
                 scannedCode = ""
                 resultMessage = ""
                 isScanning = true
+                scannerID = UUID()
             }) {
                 Text("Scan Again")
                     .foregroundColor(.white)
@@ -59,11 +69,29 @@ struct QRScannerView: View {
         }
         .navigationTitle("Check In")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            checkCameraPermission()
+        }
         .onChange(of: scannedCode) { newValue in
             if !newValue.isEmpty && isScanning {
                 isScanning = false
                 checkInTicket(qrString: newValue)
             }
+        }
+    }
+
+    func checkCameraPermission() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            cameraPermissionGranted = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    cameraPermissionGranted = granted
+                }
+            }
+        default:
+            cameraPermissionGranted = false
         }
     }
 
@@ -76,7 +104,7 @@ struct QRScannerView: View {
             return
         }
 
-        let url = URL(string: "http://localhost:3000/api/tickets/checkin")!
+        let url = URL(string: "http://192.168.3.10:3000/api/tickets/checkin")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -105,20 +133,21 @@ struct QRScannerView: View {
 
 struct CameraPreview: UIViewRepresentable {
     @Binding var scannedCode: String
+    @Binding var isScanning: Bool
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(scannedCode: $scannedCode)
+        Coordinator(scannedCode: $scannedCode, isScanning: $isScanning)
     }
 
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
-        let session = AVCaptureSession()
 
         guard let device = AVCaptureDevice.default(for: .video),
               let input = try? AVCaptureDeviceInput(device: device) else {
             return view
         }
 
+        let session = AVCaptureSession()
         session.addInput(input)
 
         let output = AVCaptureMetadataOutput()
@@ -144,15 +173,18 @@ struct CameraPreview: UIViewRepresentable {
 
     class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         @Binding var scannedCode: String
+        @Binding var isScanning: Bool
         var session: AVCaptureSession?
 
-        init(scannedCode: Binding<String>) {
+        init(scannedCode: Binding<String>, isScanning: Binding<Bool>) {
             _scannedCode = scannedCode
+            _isScanning = isScanning
         }
 
         func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
             if let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
-               let code = object.stringValue {
+               let code = object.stringValue,
+               isScanning {
                 session?.stopRunning()
                 scannedCode = code
             }

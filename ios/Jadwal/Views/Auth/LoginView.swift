@@ -72,7 +72,7 @@ struct LoginView: View {
     }
     
     func login() {
-        let url = URL(string: "http://localhost:3000/api/auth/login")!
+        let url = URL(string: "http://192.168.3.10:3000/api/auth/login")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -35,7 +35,7 @@ struct GlobalAnalyticsView: View {
     }
     
     func fetchAnalytics() {
-        let url = URL(string: "http://localhost:3000/api/admin/analytics")!
+        let url = URL(string: "http://192.168.3.10:3000/api/admin/analytics")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
