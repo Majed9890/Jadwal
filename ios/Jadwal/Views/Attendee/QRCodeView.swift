@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+
 struct QRCodeView: View {
     let ticket: [String: Any]
     @State private var otp = ""
@@ -11,111 +12,167 @@ struct QRCodeView: View {
 
     var formattedTime: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
+        formatter.dateFormat = "dd/MM/yyyy HH:mm:ss"
         formatter.timeZone = TimeZone(identifier: "Asia/Riyadh")
         return formatter.string(from: currentTime)
     }
 
     var body: some View {
-        VStack(spacing: 20) {
-            let eventInfo = ticket["Event"] as? [String: Any]
-            Text(eventInfo?["event_name"] as? String ?? "Ticket")
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.top, 40)
+        ZStack {
+            Color(red: 0.08, green: 0.11, blue: 0.08)
+                .ignoresSafeArea()
 
-            Text("Tier: \(ticket["tier"] as? String ?? "")")
-                .foregroundColor(.gray)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 24) {
+                    Spacer().frame(height: 20)
 
-            Text("Status: \(ticket["ticket_status"] as? String ?? "")")
-                .foregroundColor(.green)
+                    let eventInfo = ticket["Event"] as? [String: Any]
 
-            if showQR {
-                if let imageData = qrImageData, let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .frame(width: 200, height: 200)
-                }
+                    // Event name + tier
+                    VStack(spacing: 8) {
+                        Text(eventInfo?["event_name"] as? String ?? "Ticket")
+                            .font(.system(size: 22, weight: .heavy))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
 
-                Text(formattedTime)
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundColor(.gray)
-                    .onReceive(timer) { _ in
-                        currentTime = Date()
+                        HStack(spacing: 8) {
+                            Text(ticket["tier"] as? String ?? "")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color(red: 0.6, green: 1.0, blue: 0.0).opacity(0.15))
+                                .cornerRadius(8)
+
+                            Text(ticket["ticket_status"] as? String ?? "")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white.opacity(0.6))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color.white.opacity(0.08))
+                                .cornerRadius(8)
+                        }
                     }
-            } else {
-                Text("OTP sent to your email")
-                    .foregroundColor(.green)
-                    .font(.caption)
+                    .padding(.horizontal, 24)
 
-                TextField("Enter OTP", text: $otp)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .keyboardType(.numberPad)
+                    if showQR {
+                        // QR code display
+                        VStack(spacing: 16) {
+                            if let imageData = qrImageData, let uiImage = UIImage(data: imageData) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white)
+                                        .frame(width: 230, height: 230)
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .frame(width: 200, height: 200)
+                                }
+                            }
 
-                if !errorMessage.isEmpty {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
+                            HStack(spacing: 8) {
+                                Image(systemName: "clock.fill")
+                                    .font(.caption)
+                                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                Text(formattedTime)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .onReceive(timer) { _ in currentTime = Date() }
+                        }
+                        .padding(24)
+                        .background(Color.white.opacity(0.07))
+                        .cornerRadius(20)
+                        .padding(.horizontal, 24)
 
-                Button(action: {
-                    viewQRCode()
-                }) {
-                    Text("View QR Code")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                    } else {
+                        // OTP entry
+                        VStack(spacing: 16) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "envelope.fill")
+                                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                Text("OTP sent to your email")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                            .padding(12)
+                            .background(Color(red: 0.6, green: 1.0, blue: 0.0).opacity(0.08))
+                            .cornerRadius(10)
+
+                            HStack(spacing: 12) {
+                                Image(systemName: "number")
+                                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                    .frame(width: 20)
+                                TextField("", text: $otp)
+                                    .placeholder(when: otp.isEmpty) {
+                                        Text("Enter OTP code").foregroundColor(.white.opacity(0.3))
+                                    }
+                                    .foregroundColor(.white)
+                                    .keyboardType(.numberPad)
+                            }
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 18)
+                            .background(Color.white.opacity(0.07))
+                            .cornerRadius(16)
+
+                            if !errorMessage.isEmpty {
+                                HStack {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .foregroundColor(.red)
+                                    Text(errorMessage)
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            Button(action: { viewQRCode() }) {
+                                Text("View QR Code")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(Color(red: 0.08, green: 0.11, blue: 0.08))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 18)
+                                    .background(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                    .cornerRadius(16)
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                    }
+
+                    Spacer().frame(height: 40)
                 }
             }
-
-            Spacer()
         }
-        .padding(.horizontal, 24)
-        .navigationTitle("QR Code")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            refreshOTP()
-        }
+        .navigationTitle("QR Code")
+        .onAppear { refreshOTP() }
     }
 
     func refreshOTP() {
         guard let ticketId = ticket["ticket_id"] as? String else { return }
-
         let url = URL(string: "http://192.168.3.10:3000/api/tickets/refresh-otp")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-
         let body: [String: Any] = ["ticket_id": ticketId]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
         URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
     }
 
     func viewQRCode() {
         guard let ticketId = ticket["ticket_id"] as? String else { return }
-
         let url = URL(string: "http://192.168.3.10:3000/api/tickets/qr-code")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-
-        let body: [String: Any] = [
-            "ticket_id": ticketId,
-            "otp_code": otp
-        ]
-
+        let body: [String: Any] = ["ticket_id": ticketId, "otp_code": otp]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else { return }
-
             if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 DispatchQueue.main.async {
                     if let qrString = result["qr_code"] as? String {

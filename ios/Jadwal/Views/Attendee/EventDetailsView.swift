@@ -3,69 +3,199 @@ import SwiftUI
 struct EventDetailsView: View {
     let event: [String: Any]
     @State private var isLiked = false
+    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Rectangle()
-                    .fill(Color(.systemGray5))
-                    .frame(height: 200)
-                    .overlay(likeButton, alignment: .topTrailing)
+        ZStack {
+            Color(red: 0.08, green: 0.11, blue: 0.08)
+                .ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(event["event_name"] as? String ?? "")
-                        .font(.title)
-                        .fontWeight(.bold)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
 
-                    Text("Category: \(event["category"] as? String ?? "")")
-                        .foregroundColor(.gray)
+                    ZStack(alignment: .top) {
+                        if let imageUrl = event["image_url"] as? String, !imageUrl.isEmpty, let url = URL(string: imageUrl) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Color(red: 0.15, green: 0.18, blue: 0.15)
+                            }
+                            .frame(width: UIScreen.main.bounds.width, height: 300)
+                            .clipped()
+                        } else {
+                            ZStack {
+                                Color(red: 0.15, green: 0.18, blue: 0.15)
+                                    .frame(height: 300)
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.white.opacity(0.2))
+                            }
+                        }
 
-                    Text("City: \(event["city"] as? String ?? "")")
-                        .foregroundColor(.gray)
+                        LinearGradient(
+                            colors: [.black.opacity(0.5), .clear, .clear, Color(red: 0.08, green: 0.11, blue: 0.08)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 300)
 
-                    Text("Location: \(event["location"] as? String ?? "")")
-                        .foregroundColor(.gray)
-
-                    if let t1name = event["ticket_type1_name"] as? String,
-                       let t1price = event["ticket_type1_price"] as? Int {
-                        Text("\(t1name): SAR \(t1price)")
-                            .font(.headline)
+                        HStack {
+                            Button(action: {
+                                presentationMode.wrappedValue.dismiss()
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.4))
+                                        .frame(width: 40, height: 40)
+                                    Image(systemName: "chevron.left")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .semibold))
+                                }
+                            }
+                            Spacer()
+                            Button(action: {
+                                isLiked.toggle()
+                                likeEvent()
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.4))
+                                        .frame(width: 40, height: 40)
+                                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                                        .foregroundColor(isLiked ? .red : .white)
+                                        .font(.system(size: 16, weight: .semibold))
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 60)
                     }
 
-                    if let t2name = event["ticket_type2_name"] as? String,
-                       let t2price = event["ticket_type2_price"] as? Int {
-                        Text("\(t2name): SAR \(t2price)")
-                            .font(.headline)
-                    }
+                    VStack(alignment: .leading, spacing: 20) {
 
-                    NavigationLink(destination: PurchaseTicketView(event: event)) {
-                        Text("Buy Ticket")
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                        // Category badge + event name
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(event["category"] as? String ?? "")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color(red: 0.6, green: 1.0, blue: 0.0).opacity(0.15))
+                                .cornerRadius(8)
+
+                            Text(event["event_name"] as? String ?? "")
+                                .font(.system(size: 26, weight: .heavy))
+                                .foregroundColor(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        // Info rows
+                        VStack(spacing: 12) {
+                            infoRow(icon: "mappin.circle.fill", title: "Location", value: "\(event["location"] as? String ?? ""), \(event["city"] as? String ?? "")")
+                            infoRow(icon: "calendar", title: "Date", value: "\(event["start_date"] as? String ?? "") → \(event["end_date"] as? String ?? "")")
+                            infoRow(icon: "clock.fill", title: "Time", value: event["time"] as? String ?? "")
+                        }
+                        .padding(16)
+                        .background(Color.white.opacity(0.05))
+                        .cornerRadius(16)
+
+                        // Description
+                        if let desc = event["description"] as? String, !desc.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("About")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text(desc)
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .lineSpacing(5)
+                            }
+                        }
+
+                        // Tickets
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Tickets")
+                                .font(.headline)
+                                .foregroundColor(.white)
+
+                            if let t1name = event["ticket_type1_name"] as? String,
+                               let t1price = event["ticket_type1_price"] as? Int {
+                                HStack {
+                                    Text(t1name)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text("SAR \(t1price)")
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                }
+                                .padding(14)
+                                .background(Color.white.opacity(0.05))
+                                .cornerRadius(12)
+                            }
+
+                            if let t2name = event["ticket_type2_name"] as? String,
+                               let t2price = event["ticket_type2_price"] as? Int,
+                               !t2name.isEmpty {
+                                HStack {
+                                    Text(t2name)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text("SAR \(t2price)")
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                }
+                                .padding(14)
+                                .background(Color.white.opacity(0.05))
+                                .cornerRadius(12)
+                            }
+                        }
+
+                        // Buy button
+                        NavigationLink(destination: PurchaseTicketView(event: event)) {
+                            Text("Buy Ticket")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(Color(red: 0.08, green: 0.11, blue: 0.08))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                .cornerRadius(16)
+                        }
+                        .padding(.top, 8)
+
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 40)
                 }
-                .padding(.horizontal, 16)
             }
         }
-        .navigationTitle("Event Details")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .onAppear {
             checkLike()
         }
     }
 
-    var likeButton: some View {
-        Button(action: {
-            isLiked.toggle()
-            likeEvent()
-        }) {
-            Image(systemName: isLiked ? "heart.fill" : "heart")
-                .foregroundColor(isLiked ? .red : .white)
-                .font(.title)
-                .padding()
+    func infoRow(icon: String, title: String, value: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                .frame(width: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.4))
+                Text(value)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+            }
+            Spacer()
         }
     }
 
@@ -105,5 +235,5 @@ struct EventDetailsView: View {
 }
 
 #Preview {
-    EventDetailsView(event: ["event_name": "Rock Concert", "category": "music", "city": "Riyadh"])
+    EventDetailsView(event: ["event_name": "Rock Concert", "category": "Music", "city": "Riyadh"])
 }

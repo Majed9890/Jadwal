@@ -6,81 +6,116 @@ struct OTPView: View {
     @State private var otp = ""
     @State private var errorMessage = ""
     @State private var isVerified = false
-    
+
     var body: some View {
         if isVerified {
             LoginView()
         } else {
-            VStack(spacing: 20) {
-                Text("Verify Your Account")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, 60)
-                
-                Text("Enter the OTP sent to your Email")
-                    .foregroundColor(.gray)
-                
-                Spacer()
-                
-                TextField("Enter OTP", text: $otp)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .keyboardType(.numberPad)
-                
-                if !errorMessage.isEmpty {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
+            ZStack {
+                Color(red: 0.08, green: 0.11, blue: 0.08)
+                    .ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 32) {
+                        Spacer().frame(height: 60)
+
+                        // Icon
+                        ZStack {
+                            Circle()
+                                .fill(Color(red: 0.6, green: 1.0, blue: 0.0).opacity(0.15))
+                                .frame(width: 80, height: 80)
+                            Image(systemName: "envelope.badge.fill")
+                                .font(.system(size: 34))
+                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                        }
+
+                        // Title
+                        VStack(spacing: 8) {
+                            Text("Check Your Email")
+                                .font(.system(size: 28, weight: .heavy))
+                                .foregroundColor(.white)
+                            Text("We sent a 6-digit code to")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.5))
+                            Text(email)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                        }
+
+                        // OTP field
+                        VStack(spacing: 14) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "number")
+                                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                    .frame(width: 20)
+                                TextField("", text: $otp)
+                                    .placeholder(when: otp.isEmpty) {
+                                        Text("Enter 6-digit OTP").foregroundColor(.white.opacity(0.3))
+                                    }
+                                    .foregroundColor(.white)
+                                    .keyboardType(.numberPad)
+                            }
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 18)
+                            .background(Color.white.opacity(0.07))
+                            .cornerRadius(16)
+
+                            if !errorMessage.isEmpty {
+                                HStack {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .foregroundColor(.red)
+                                    Text(errorMessage)
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            Button(action: { verifyOTP() }) {
+                                Text("Verify Account")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(Color(red: 0.08, green: 0.11, blue: 0.08))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 18)
+                                    .background(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                    .cornerRadius(16)
+                            }
+                            .padding(.top, 6)
+                        }
+                        .padding(.horizontal, 24)
+
+                        Spacer().frame(height: 40)
+                    }
                 }
-                
-                Button(action: {
-                    verifyOTP()
-                }) {
-                    Text("Verify")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                
-                Spacer()
             }
-            .padding(.horizontal, 24)
+            .navigationBarHidden(true)
         }
     }
-    
+
     func verifyOTP() {
         let url = URL(string: "http://192.168.3.10:3000/api/auth/verify-otp")!
         var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                
-                let body: [String: Any] = [
-                    "email": email,
-                    "otp_code": otp,
-                    "role": role
-                ]
-                
-                request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-                
-                URLSession.shared.dataTask(with: request) { data, response, error in
-                    guard let data = data else { return }
-                    
-                    if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        DispatchQueue.main.async {
-                            if let message = result["message"] as? String, message.contains("successfully") {
-                                isVerified = true
-                            } else if let err = result["error"] as? String {
-                                errorMessage = err
-                            }
-                        }
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["email": email, "otp_code": otp, "role": role]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                DispatchQueue.main.async {
+                    if let message = result["message"] as? String, message.contains("successfully") {
+                        isVerified = true
+                    } else if let err = result["error"] as? String {
+                        errorMessage = err
                     }
-                }.resume()
+                }
             }
-        }
+        }.resume()
+    }
+}
 
-        #Preview {
-            OTPView(email: "test@test.com", role: "attendee")
-        }
+#Preview {
+    OTPView(email: "test@test.com", role: "attendee")
+}

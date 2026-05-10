@@ -6,90 +6,141 @@ struct PendingEventsView: View {
 
     var body: some View {
         NavigationView {
-            Group {
+            ZStack {
+                Color(red: 0.08, green: 0.11, blue: 0.08)
+                    .ignoresSafeArea()
+
                 if isLoading {
-                    ProgressView("Loading...")
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.6, green: 1.0, blue: 0.0)))
+                            .scaleEffect(1.4)
+                        Text("Loading...")
+                            .foregroundColor(.white.opacity(0.5))
+                            .font(.subheadline)
+                    }
                 } else if events.isEmpty {
-                    Text("No pending events")
-                        .foregroundColor(.gray)
+                    VStack(spacing: 16) {
+                        Image(systemName: "clock.badge.questionmark")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white.opacity(0.15))
+                        Text("No pending events")
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.4))
+                    }
                 } else {
-                    ScrollView {
-                        VStack(spacing: 15) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 14) {
                             ForEach(0..<events.count, id: \.self) { index in
                                 let event = events[index]
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(event["event_name"] as? String ?? "")
-                                        .font(.headline)
-                                    Text(event["category"] as? String ?? "")
-                                        .foregroundColor(.gray)
-                                    Text("City: \(event["city"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("Location: \(event["location"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("District: \(event["district"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("Road: \(event["road_name"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("Start: \(event["start_date"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("End: \(event["end_date"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("Time: \(event["time"] as? String ?? "")")
-                                        .font(.caption)
-                                    Text("Capacity: \(event["event_capacity"] as? Int ?? 0)")
-                                        .font(.caption)
-                                    Text("Ticket 1: \(event["ticket_type1_name"] as? String ?? "") - SAR \(event["ticket_type1_price"] as? Int ?? 0)")
-                                        .font(.caption)
+                                VStack(alignment: .leading, spacing: 14) {
 
-                                    if let t2name = event["ticket_type2_name"] as? String, !t2name.isEmpty {
-                                        Text("Ticket 2: \(t2name) - SAR \(event["ticket_type2_price"] as? Int ?? 0)")
-                                            .font(.caption)
+                                    // Header
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(event["event_name"] as? String ?? "")
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(.white)
+                                            Text(event["category"] as? String ?? "")
+                                                .font(.caption)
+                                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                        }
+                                        Spacer()
+                                        Text("Pending")
+                                            .font(.caption).fontWeight(.semibold)
+                                            .foregroundColor(.orange)
+                                            .padding(.horizontal, 10).padding(.vertical, 4)
+                                            .background(Color.orange.opacity(0.15))
+                                            .cornerRadius(8)
                                     }
 
-                                    Text("Description: \(event["description"] as? String ?? "")")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
+                                    // Details
+                                    VStack(spacing: 8) {
+                                        infoRow(label: "City", value: event["city"] as? String ?? "")
+                                        infoRow(label: "Location", value: event["location"] as? String ?? "")
+                                        infoRow(label: "District", value: event["district"] as? String ?? "")
+                                        infoRow(label: "Road", value: event["road_name"] as? String ?? "")
+                                        infoRow(label: "Start", value: event["start_date"] as? String ?? "")
+                                        infoRow(label: "End", value: event["end_date"] as? String ?? "")
+                                        infoRow(label: "Time", value: event["time"] as? String ?? "")
+                                        infoRow(label: "Capacity", value: "\(event["event_capacity"] as? Int ?? 0)")
+                                        infoRow(label: "Ticket 1", value: "\(event["ticket_type1_name"] as? String ?? "") — SAR \(event["ticket_type1_price"] as? Int ?? 0)")
+                                        if let t2name = event["ticket_type2_name"] as? String, !t2name.isEmpty {
+                                            infoRow(label: "Ticket 2", value: "\(t2name) — SAR \(event["ticket_type2_price"] as? Int ?? 0)")
+                                        }
+                                    }
 
+                                    // Description
+                                    if let desc = event["description"] as? String, !desc.isEmpty {
+                                        Text(desc)
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.5))
+                                            .lineSpacing(4)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+
+                                    // Buttons
                                     HStack(spacing: 10) {
-                                        Button {
+                                        Button(action: {
                                             updateStatus(event_id: event["event_id"] as? String ?? "", status: "approved")
-                                        } label: {
-                                            Text("Approve")
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: .infinity)
-                                                .padding(10)
-                                                .background(Color.green)
-                                                .cornerRadius(8)
+                                        }) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                Text("Approve")
+                                            }
+                                            .font(.subheadline).fontWeight(.bold)
+                                            .foregroundColor(Color(red: 0.08, green: 0.11, blue: 0.08))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                            .background(Color(red: 0.6, green: 1.0, blue: 0.0))
+                                            .cornerRadius(12)
                                         }
                                         .buttonStyle(BorderlessButtonStyle())
 
-                                        Button {
+                                        Button(action: {
                                             updateStatus(event_id: event["event_id"] as? String ?? "", status: "rejected")
-                                        } label: {
-                                            Text("Reject")
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: .infinity)
-                                                .padding(10)
-                                                .background(Color.red)
-                                                .cornerRadius(8)
+                                        }) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "xmark.circle.fill")
+                                                Text("Reject")
+                                            }
+                                            .font(.subheadline).fontWeight(.bold)
+                                            .foregroundColor(.red)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                            .background(Color.red.opacity(0.1))
+                                            .cornerRadius(12)
                                         }
                                         .buttonStyle(BorderlessButtonStyle())
                                     }
                                 }
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(12)
-                                .padding(.horizontal, 16)
+                                .padding(16)
+                                .background(Color.white.opacity(0.07))
+                                .cornerRadius(16)
                             }
                         }
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 10)
+                        .padding(.bottom, 30)
                     }
                 }
             }
             .navigationTitle("Pending Events")
-            .onAppear {
-                fetchEvents()
-            }
+            .navigationBarTitleDisplayMode(.large)
+            .onAppear { fetchEvents() }
+        }
+    }
+
+    func infoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.4))
+                .frame(width: 60, alignment: .leading)
+            Text(value)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+            Spacer()
         }
     }
 
@@ -98,16 +149,11 @@ struct PendingEventsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else { return }
-
             if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let list = result["events"] as? [[String: Any]] {
-                DispatchQueue.main.async {
-                    events = list
-                    isLoading = false
-                }
+                DispatchQueue.main.async { events = list; isLoading = false }
             }
         }.resume()
     }
@@ -118,18 +164,12 @@ struct PendingEventsView: View {
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
-
         let body: [String: Any] = ["event_id": event_id, "status": status]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                fetchEvents()
-            }
+        URLSession.shared.dataTask(with: request) { _, _, _ in
+            DispatchQueue.main.async { fetchEvents() }
         }.resume()
     }
 }
 
-#Preview {
-    PendingEventsView()
-}
+#Preview { PendingEventsView() }

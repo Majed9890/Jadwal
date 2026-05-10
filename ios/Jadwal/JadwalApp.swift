@@ -4,8 +4,9 @@ import SwiftUI
 struct JadwalApp: App {
     var body: some Scene {
         WindowGroup {
-            LoginView()
+            NavigationView {
+                LoginView()
+            }
         }
     }
 }
-
