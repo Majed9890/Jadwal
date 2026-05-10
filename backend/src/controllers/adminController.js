@@ -82,23 +82,42 @@ const getGlobalAnalytics = async (req, res) => {
 
     const { data: organizers, error: organizerError } = await supabase
         .from('Organizer')
-        .select('organizer_id');
+        .select('organizer_id, entity_name');
 
     const { data: tickets, error: ticketError } = await supabase
         .from('Ticket')
-        .select('price');
+        .select('price, event_id, Event(organizer_id, event_name)');
 
     if (attendeeError || organizerError || ticketError) {
         return res.status(500).json({ error: 'error fetching analytics' });
     }
 
     const totalRevenue = tickets.reduce((sum, ticket) => sum + ticket.price, 0);
+    const avgRevenuePerTicket = tickets.length > 0 ? Math.round(totalRevenue / tickets.length) : 0;
+
+    // tickets sold per organizer
+    const organizerTicketMap = {};
+    tickets.forEach(ticket => {
+        const orgId = ticket.Event?.organizer_id;
+        const orgName = organizers.find(o => o.organizer_id === orgId)?.entity_name || 'Unknown';
+        if (!organizerTicketMap[orgName]) {
+            organizerTicketMap[orgName] = 0;
+        }
+        organizerTicketMap[orgName] += 1;
+    });
+
+    const tickets_per_organizer = Object.keys(organizerTicketMap).map(name => ({
+        organizer_name: name,
+        tickets_sold: organizerTicketMap[name]
+    }));
 
     res.json({
         total_attendees: attendees.length,
         total_organizers: organizers.length,
         total_tickets_sold: tickets.length,
-        total_revenue: totalRevenue
+        total_revenue: totalRevenue,
+        avg_revenue_per_ticket: avgRevenuePerTicket,
+        tickets_per_organizer
     });
 };
 
