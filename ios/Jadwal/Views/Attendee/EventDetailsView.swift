@@ -94,7 +94,7 @@ struct EventDetailsView: View {
 
                         // Info rows
                         VStack(spacing: 12) {
-                            infoRow(icon: "mappin.circle.fill", title: "Location", value: "\(event["location"] as? String ?? ""), \(event["city"] as? String ?? "")")
+                            locationRow()
                             infoRow(icon: "calendar", title: "Date", value: "\(event["start_date"] as? String ?? "") → \(event["end_date"] as? String ?? "")")
                             infoRow(icon: "clock.fill", title: "Time", value: event["time"] as? String ?? "")
                         }
@@ -178,6 +178,43 @@ struct EventDetailsView: View {
         .navigationBarHidden(true)
         .onAppear {
             checkLike()
+        }
+    }
+
+    func locationRow() -> some View {
+        let locationString = event["location"] as? String ?? ""
+        let cityString = event["city"] as? String ?? ""
+        let displayValue = "\(locationString), \(cityString)"
+        let isURL = locationString.lowercased().hasPrefix("http")
+
+        return HStack(spacing: 12) {
+            Image(systemName: "mappin.circle.fill")
+                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                .frame(width: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Location")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.4))
+                if isURL, let url = URL(string: locationString) {
+                    Link(destination: url) {
+                        HStack(spacing: 6) {
+                            Text("Open in Maps")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                        }
+                    }
+                } else {
+                    Text(displayValue)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                }
+            }
+            Spacer()
         }
     }
 
