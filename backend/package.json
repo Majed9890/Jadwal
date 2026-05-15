@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "reco:train": "node scripts/trainRecommendations.js",
+    "reco:demo": "node scripts/demoRecommendations.js",
+    "reco:evaluate": "node scripts/evaluateRecommendations.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -134,4 +134,33 @@ const checkLike = async (req, res) => {
     res.json({ liked: data ? true : false });
 };
 
-module.exports = { editProfile, updateInterests, likeEvent, getProfile, checkLike };
+const logEventView = async (req, res) => {
+    const attendee_id = req.user.id;
+    const { event_id, duration_seconds } = req.body;
+    const duration = Number(duration_seconds || 0);
+
+    if (!event_id) {
+        return res.status(400).json({ error: 'event_id is required' });
+    }
+
+    if (duration < 10) {
+        return res.json({ message: 'view ignored because duration is below 10 seconds', recorded: false });
+    }
+
+    const { error } = await supabase
+        .from('Interaction')
+        .insert([{
+            attendee_id,
+            event_id,
+            interaction_type: 'view',
+            interaction_value: 1
+        }]);
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    res.status(201).json({ message: 'event view recorded', recorded: true });
+};
+
+module.exports = { editProfile, updateInterests, likeEvent, getProfile, checkLike, logEventView };

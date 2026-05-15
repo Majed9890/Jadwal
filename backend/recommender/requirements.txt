@@ -1,0 +1,7 @@
+lightfm
+pandas
+scipy
+scikit-learn
+joblib
+python-dotenv
+supabase

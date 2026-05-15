@@ -1,4 +1,6 @@
 const supabase = require('../config/supabase');
+const { recommendWithLightFM } = require('../../scripts/lightfmRecommendations');
+const { recommendWithNodeFallback } = require('../../scripts/nodeRecommendationFallback');
 
 const createEvent = async (req, res) => {
     const { event_name, category, description, location, city, district, road_name, start_date, end_date, time, event_capacity, image_url, ticket_type1_name, ticket_type1_price, ticket_type1_capacity, ticket_type2_name, ticket_type2_price, ticket_type2_capacity } = req.body;
@@ -58,6 +60,27 @@ const filterEvents = async (req, res) => {
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
     res.json({ events: data });
+};
+
+const getRecommendedEvents = async (req, res) => {
+    const attendee_id = req.user.id;
+    const limit = Number(req.query.limit || 10);
+
+    try {
+        const result = recommendWithLightFM(attendee_id, limit);
+        return res.json(result);
+    } catch (lightfmError) {
+        try {
+            const fallback = await recommendWithNodeFallback(attendee_id, limit);
+            return res.json({
+                ...fallback,
+                source: 'fallback',
+                warning: lightfmError.message
+            });
+        } catch (fallbackError) {
+            return res.status(500).json({ error: fallbackError.message });
+        }
+    }
 };
 
 const getEventStats = async (req, res) => {
@@ -146,4 +169,4 @@ const getEventGenderStats = async (req, res) => {
     });
 };
 
-module.exports = { createEvent, getOrganizerEvents, getOrganizerDashboard, getOrganizerProfile, editOrganizerProfile, searchEvents, filterEvents, getEventStats, getEventGenderStats };
+module.exports = { createEvent, getOrganizerEvents, getOrganizerDashboard, getOrganizerProfile, editOrganizerProfile, searchEvents, filterEvents, getRecommendedEvents, getEventStats, getEventGenderStats };

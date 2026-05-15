@@ -139,7 +139,7 @@ struct HomeView: View {
     }
 
     func fetchEvents() {
-        let url = URL(string: "http://192.168.3.10:3000/api/events/search?keyword=")!
+        let url = URL(string: "http://192.168.3.10:3000/api/events/recommended")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -147,10 +147,14 @@ struct HomeView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else { return }
 
-            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let eventList = result["events"] as? [[String: Any]] {
+            if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                let eventList = (result["recommendations"] as? [[String: Any]]) ?? (result["events"] as? [[String: Any]]) ?? []
                 DispatchQueue.main.async {
                     events = eventList
+                    isLoading = false
+                }
+            } else {
+                DispatchQueue.main.async {
                     isLoading = false
                 }
             }

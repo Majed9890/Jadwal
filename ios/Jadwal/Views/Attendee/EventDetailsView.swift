@@ -3,6 +3,8 @@ import SwiftUI
 struct EventDetailsView: View {
     let event: [String: Any]
     @State private var isLiked = false
+    @State private var viewTimer: Timer?
+    @State private var didRecordView = false
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
@@ -178,6 +180,10 @@ struct EventDetailsView: View {
         .navigationBarHidden(true)
         .onAppear {
             checkLike()
+            startViewTimer()
+        }
+        .onDisappear {
+            viewTimer?.invalidate()
         }
     }
 
@@ -265,6 +271,30 @@ struct EventDetailsView: View {
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = ["event_id": eventId]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
+    }
+
+    func startViewTimer() {
+        viewTimer?.invalidate()
+        didRecordView = false
+        viewTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { _ in
+            recordEventView()
+        }
+    }
+
+    func recordEventView() {
+        guard !didRecordView, let eventId = event["event_id"] as? String else { return }
+        didRecordView = true
+
+        let url = URL(string: "http://192.168.3.10:3000/api/attendee/event-view")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
+
+        let body: [String: Any] = ["event_id": eventId, "duration_seconds": 10]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
