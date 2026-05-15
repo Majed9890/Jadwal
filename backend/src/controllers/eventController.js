@@ -64,7 +64,7 @@ const filterEvents = async (req, res) => {
 
 const getRecommendedEvents = async (req, res) => {
     const attendee_id = req.user.id;
-    const limit = Number(req.query.limit || 10);
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
     try {
         const result = recommendWithLightFM(attendee_id, limit);

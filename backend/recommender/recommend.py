@@ -27,9 +27,6 @@ def fallback_recommendations(artifact, attendee_id, limit):
 
     ranked = []
     for event_id in artifact["event_ids"]:
-        if event_id in purchased:
-            continue
-
         event = artifact["event_by_id"][event_id]
         category = normalize_text(event.get("category"))
         city = normalize_text(event.get("city"))
@@ -40,10 +37,19 @@ def fallback_recommendations(artifact, attendee_id, limit):
         if attendee_city and attendee_city == city:
             score += 10.0
 
+        if event_id in purchased:
+            score -= 5.0
+
         ranked.append((score, event_id))
 
-    ranked.sort(reverse=True)
-    return ranked[:limit]
+    ranked.sort(
+        key=lambda pair: (
+            -pair[0],
+            normalize_text(artifact["event_by_id"][pair[1]].get("event_name")),
+            pair[1],
+        )
+    )
+    return ranked[:limit] if limit else ranked
 
 
 def lightfm_recommendations(artifact, attendee_id, limit):
@@ -51,11 +57,9 @@ def lightfm_recommendations(artifact, attendee_id, limit):
     if attendee_id not in user_id_map:
         return fallback_recommendations(artifact, attendee_id, limit), "fallback"
 
-    purchased = set(artifact["purchased_by_user"].get(attendee_id, []))
     user_internal_id = user_id_map[attendee_id]
-    candidate_event_ids = [
-        event_id for event_id in artifact["event_ids"] if event_id not in purchased
-    ]
+    purchased = set(artifact["purchased_by_user"].get(attendee_id, []))
+    candidate_event_ids = list(artifact["event_ids"])
 
     if not candidate_event_ids:
         return [], "lightfm"
@@ -96,17 +100,23 @@ def lightfm_recommendations(artifact, attendee_id, limit):
         if attendee_city and attendee_city == normalize_text(event.get("city")):
             adjusted_score += 0.10
         adjusted_score += artifact["popularity_by_event"].get(event_id, 0.0) * 0.001
+        if event_id in purchased:
+            adjusted_score -= 0.05
         adjusted_scores.append(adjusted_score)
 
     ranked = sorted(
         zip(adjusted_scores, candidate_event_ids),
-        key=lambda pair: pair[0],
-        reverse=True,
+        key=lambda pair: (
+            -pair[0],
+            normalize_text(artifact["event_by_id"][pair[1]].get("event_name")),
+            pair[1],
+        ),
     )
-    return ranked[:limit], "lightfm"
+    return (ranked[:limit] if limit else ranked), "lightfm"
 
 
-def format_results(artifact, ranked, source):
+def format_results(artifact, ranked, source, attendee_id):
+    purchased = set(artifact["purchased_by_user"].get(attendee_id, []))
     results = []
     for rank, (score, event_id) in enumerate(ranked, start=1):
         event = artifact["event_by_id"][event_id]
@@ -116,6 +126,7 @@ def format_results(artifact, ranked, source):
             "price": event_price(event),
             "score": round(float(score), 4),
             "source": source,
+            "already_purchased": event_id in purchased,
         })
         results.append(result)
     return results
@@ -123,7 +134,7 @@ def format_results(artifact, ranked, source):
 
 def main():
     attendee_id = sys.argv[1] if len(sys.argv) >= 2 else ""
-    limit = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+    limit = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2] else None
 
     if not MODEL_PATH.exists():
         fail("Model is missing. Run: npm run reco:train")
@@ -147,7 +158,7 @@ def main():
                 "ok": True,
                 "attendee_id": attendee_id,
                 "source": source,
-                "recommendations": format_results(artifact, ranked, source),
+                "recommendations": format_results(artifact, ranked, source, attendee_id),
             },
             ensure_ascii=True,
         )

@@ -35,7 +35,7 @@ async function fetchAll(supabase, table, columns = '*') {
   }
 }
 
-async function recommendWithNodeFallback(attendeeId, limit = 10) {
+async function recommendWithNodeFallback(attendeeId, limit) {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in backend/.env');
   }
@@ -83,7 +83,6 @@ async function recommendWithNodeFallback(attendeeId, limit = 10) {
   const attendeeCity = normalize(attendee.city);
   const ranked = events
     .filter((event) => normalize(event.event_status) === 'approved')
-    .filter((event) => !purchased.has(event.event_id))
     .map((event) => {
       const category = normalize(event.category);
       const city = normalize(event.city);
@@ -95,20 +94,28 @@ async function recommendWithNodeFallback(attendeeId, limit = 10) {
       score += (likeCounts.get(event.event_id) || 0) * 3;
       score += Number(event.ticket_sold || 0) * 2;
       score += Number(event.sales || 0) / 1000;
+      if (purchased.has(event.event_id)) score -= 5;
 
       return { event, score };
     })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, Number(limit));
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      const nameCompare = normalize(a.event.event_name).localeCompare(normalize(b.event.event_name));
+      if (nameCompare !== 0) return nameCompare;
+      return normalize(a.event.event_id).localeCompare(normalize(b.event.event_id));
+    });
+
+  const limited = limit ? ranked.slice(0, Number(limit)) : ranked;
 
   return {
     attendeeId: chosenAttendeeId,
     source: 'fallback',
-    recommendations: ranked.map(({ event, score }, index) => ({
+    recommendations: limited.map(({ event, score }, index) => ({
       ...event,
       rank: index + 1,
       price: priceFor(event),
-      score: Number(score.toFixed(4))
+      score: Number(score.toFixed(4)),
+      already_purchased: purchased.has(event.event_id)
     }))
   };
 }

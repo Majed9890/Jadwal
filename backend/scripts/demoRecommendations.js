@@ -4,7 +4,7 @@ const { recommendWithNodeFallback } = require('./nodeRecommendationFallback');
 const { recommendWithLightFM } = require('./lightfmRecommendations');
 
 const attendeeId = process.argv[2];
-const limit = process.argv[3] || '10';
+const limit = process.argv[3] || '';
 
 try {
   const payload = recommendWithLightFM(attendeeId, limit);

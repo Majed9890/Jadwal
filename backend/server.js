@@ -34,12 +34,12 @@ app.get('/', (req, res) => {
 app.get('/api/recommendations-demo', async (req, res) => {
     try {
         const { attendee_id, limit } = req.query;
-        const result = recommendWithLightFM(attendee_id, limit || 10);
+        const result = recommendWithLightFM(attendee_id, limit);
         res.json(result);
     } catch (error) {
         try {
             const { attendee_id, limit } = req.query;
-            const fallback = await recommendWithNodeFallback(attendee_id, limit || 10);
+            const fallback = await recommendWithNodeFallback(attendee_id, limit);
             res.json({
                 ...fallback,
                 warning: error.message

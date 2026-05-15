@@ -1,10 +1,11 @@
 const path = require('path');
 const { runPython } = require('./pythonRunner');
 
-function recommendWithLightFM(attendeeId, limit = 10) {
+function recommendWithLightFM(attendeeId, limit) {
   const backendDir = path.resolve(__dirname, '..');
   const recommendScript = path.join(backendDir, 'recommender', 'recommend.py');
-  const args = [attendeeId || '', String(limit || 10)];
+  const args = [attendeeId || ''];
+  if (limit) args.push(String(limit));
   const { result, attempts } = runPython(recommendScript, args, { cwd: backendDir });
 
   if (!result) {
