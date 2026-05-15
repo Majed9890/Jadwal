@@ -24,6 +24,8 @@ struct CreateEventView: View {
     @State private var selectedImage: UIImage? = nil
     @State private var showImagePicker = false
     @State private var isUploading = false
+    let cityOptions = ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Khamis Mushait", "Buraidah", "Hail", "Najran", "Jubail", "Yanbu", "Al Ahsa", "Arar", "Sakaka", "Jazan"]
+    let categoryOptions = ["Music", "Sports", "Art", "Technology", "Food", "Travel", "Fashion", "Gaming"]
 
     var body: some View {
         ZStack {
@@ -69,7 +71,7 @@ struct CreateEventView: View {
                     sectionHeader("Event Details")
                     VStack(spacing: 12) {
                         darkField(icon: "text.cursor", placeholder: "Event Name", text: $eventName)
-                        darkField(icon: "tag.fill", placeholder: "Category", text: $category)
+                        dropdownField(icon: "tag.fill", placeholder: "Category", selection: $category, options: categoryOptions)
                         darkField(icon: "text.alignleft", placeholder: "Description", text: $description)
                     }
                     .padding(.horizontal, 24)
@@ -78,7 +80,7 @@ struct CreateEventView: View {
                     sectionHeader("Location")
                     VStack(spacing: 12) {
                         darkField(icon: "mappin.circle.fill", placeholder: "Location", text: $location)
-                        darkField(icon: "building.2.fill", placeholder: "City", text: $city)
+                        dropdownField(icon: "building.2.fill", placeholder: "City", selection: $city, options: cityOptions)
                         darkField(icon: "map.fill", placeholder: "District", text: $district)
                         darkField(icon: "road.lanes", placeholder: "Road Name", text: $roadName)
                     }
@@ -207,6 +209,31 @@ struct CreateEventView: View {
         .background(Color.white.opacity(0.07)).cornerRadius(14)
     }
 
+    func dropdownField(icon: String, placeholder: String, selection: Binding<String>, options: [String]) -> some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button(option) {
+                    selection.wrappedValue = option
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                    .frame(width: 20)
+                Text(selection.wrappedValue.isEmpty ? placeholder : selection.wrappedValue)
+                    .foregroundColor(selection.wrappedValue.isEmpty ? .white.opacity(0.3) : .white)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(Color.white.opacity(0.07))
+            .cornerRadius(14)
+        }
+    }
+
     func uploadImageAndSubmit(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.7) else {
             errorMessage = "failed to process image"
@@ -241,6 +268,12 @@ struct CreateEventView: View {
     }
 
     func submitEvent(imageUrl: String) {
+        if category.isEmpty || city.isEmpty {
+            errorMessage = "please select category and city"
+            isUploading = false
+            return
+        }
+
         let url = URL(string: "http://192.168.3.10:3000/api/events/create")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

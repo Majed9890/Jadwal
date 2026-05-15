@@ -2,6 +2,7 @@ const supabase = require('../config/supabase');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const { isValidCity } = require('../constants/options');
 
 // email transporter
 const transporter = nodemailer.createTransport({
@@ -31,6 +32,10 @@ function generateOTP() {
 // register a new attendee
 const registerAttendee = async (req, res) => {
     const { name, email, password, phone_number, date_of_birth, gender, city } = req.body;
+
+    if (!isValidCity(city)) {
+        return res.status(400).json({ error: 'please select a valid city' });
+    }
 
     const { data: existingUser } = await supabase
         .from('Attendee')

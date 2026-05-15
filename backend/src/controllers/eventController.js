@@ -1,9 +1,17 @@
 const supabase = require('../config/supabase');
 const { recommendWithLightFM } = require('../../scripts/lightfmRecommendations');
 const { recommendWithNodeFallback } = require('../../scripts/nodeRecommendationFallback');
+const { isValidCategory, isValidCity } = require('../constants/options');
 
 const createEvent = async (req, res) => {
     const { event_name, category, description, location, city, district, road_name, start_date, end_date, time, event_capacity, image_url, ticket_type1_name, ticket_type1_price, ticket_type1_capacity, ticket_type2_name, ticket_type2_price, ticket_type2_capacity } = req.body;
+
+    if (!isValidCategory(category)) {
+        return res.status(400).json({ error: 'please select a valid category' });
+    }
+    if (!isValidCity(city)) {
+        return res.status(400).json({ error: 'please select a valid city' });
+    }
 
     const { data, error } = await supabase.from('Event').insert([{
         organizer_id: req.user.id, event_name, category, description, location, city, district, road_name, start_date, end_date, time, event_capacity, available_tickets: event_capacity, image_url, event_status: 'pending',

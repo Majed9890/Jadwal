@@ -9,6 +9,7 @@ struct EditProfileView: View {
     @State private var errorMessage = ""
     @State private var successMessage = ""
     let genders = ["male", "female"]
+    let cityOptions = ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Khamis Mushait", "Buraidah", "Hail", "Najran", "Jubail", "Yanbu", "Al Ahsa", "Arar", "Sakaka", "Jazan"]
     @Binding var isLoggedIn: Bool
 
     var body: some View {
@@ -35,7 +36,7 @@ struct EditProfileView: View {
                         VStack(spacing: 14) {
                             darkField(icon: "person.fill", placeholder: "Full Name", text: $name)
                             darkField(icon: "phone.fill", placeholder: "Phone Number", text: $phone, keyboard: .phonePad)
-                            darkField(icon: "building.2.fill", placeholder: "City", text: $city)
+                            dropdownField(icon: "building.2.fill", placeholder: "City", selection: $city, options: cityOptions)
                             darkField(icon: "calendar", placeholder: "Date of Birth (YYYY-MM-DD)", text: $dateOfBirth)
 
                             VStack(alignment: .leading, spacing: 8) {
@@ -133,6 +134,31 @@ struct EditProfileView: View {
         .background(Color.white.opacity(0.07)).cornerRadius(14)
     }
 
+    func dropdownField(icon: String, placeholder: String, selection: Binding<String>, options: [String]) -> some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button(option) {
+                    selection.wrappedValue = option
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                    .frame(width: 20)
+                Text(selection.wrappedValue.isEmpty ? placeholder : selection.wrappedValue)
+                    .foregroundColor(selection.wrappedValue.isEmpty ? .white.opacity(0.3) : .white)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(Color.white.opacity(0.07))
+            .cornerRadius(14)
+        }
+    }
+
     func fetchProfile() {
         let url = URL(string: "http://192.168.3.10:3000/api/attendee/profile")!
         var request = URLRequest(url: url)
@@ -154,6 +180,12 @@ struct EditProfileView: View {
     }
 
     func saveProfile() {
+        if city.isEmpty {
+            errorMessage = "please select a city"
+            successMessage = ""
+            return
+        }
+
         let url = URL(string: "http://192.168.3.10:3000/api/attendee/edit-profile")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"

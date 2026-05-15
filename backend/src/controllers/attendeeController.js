@@ -1,8 +1,13 @@
 const supabase = require('../config/supabase');
+const { isValidCategory, isValidCity } = require('../constants/options');
 
 const editProfile = async (req, res) => {
     const attendee_id = req.user.id;
     const { name, phone_number, city, date_of_birth, gender } = req.body;
+
+    if (!isValidCity(city)) {
+        return res.status(400).json({ error: 'please select a valid city' });
+    }
 
     const { data, error } = await supabase
         .from('Attendee')
@@ -27,6 +32,10 @@ const editProfile = async (req, res) => {
 const updateInterests = async (req, res) => {
     const attendee_id = req.user.id;
     const { interests } = req.body;
+
+    if (!Array.isArray(interests) || interests.some((interest) => !isValidCategory(interest))) {
+        return res.status(400).json({ error: 'please select valid interests' });
+    }
 
     if (!interests || interests.length < 1) {
         return res.status(400).json({ error: 'you should select at least one interest' });

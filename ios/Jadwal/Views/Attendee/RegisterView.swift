@@ -23,6 +23,7 @@ struct AttendeeRegisterView: View {
     @State private var errorMessage = ""
     @State private var showOTP = false
     let genders = ["male", "female"]
+    let cityOptions = ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Khamis Mushait", "Buraidah", "Hail", "Najran", "Jubail", "Yanbu", "Al Ahsa", "Arar", "Sakaka", "Jazan"]
 
     var body: some View {
         if showOTP { OTPView(email: email, role: "attendee") }
@@ -83,7 +84,7 @@ struct AttendeeRegisterView: View {
                             darkField(icon: "envelope.fill", placeholder: "Email", text: $email, keyboard: .emailAddress)
                             darkSecureField(icon: "lock.fill", placeholder: "Password", text: $password)
                             darkField(icon: "phone.fill", placeholder: "Phone Number", text: $phone, keyboard: .phonePad)
-                            darkField(icon: "building.2.fill", placeholder: "City", text: $city)
+                            dropdownField(icon: "building.2.fill", placeholder: "City", selection: $city, options: cityOptions)
                             darkField(icon: "calendar", placeholder: "Date of Birth (YYYY-MM-DD)", text: $dateOfBirth)
 
                             VStack(alignment: .leading, spacing: 8) {
@@ -143,6 +144,31 @@ struct AttendeeRegisterView: View {
         .background(Color.white.opacity(0.07)).cornerRadius(14)
     }
 
+    func dropdownField(icon: String, placeholder: String, selection: Binding<String>, options: [String]) -> some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button(option) {
+                    selection.wrappedValue = option
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0))
+                    .frame(width: 20)
+                Text(selection.wrappedValue.isEmpty ? placeholder : selection.wrappedValue)
+                    .foregroundColor(selection.wrappedValue.isEmpty ? .white.opacity(0.3) : .white)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(Color.white.opacity(0.07))
+            .cornerRadius(14)
+        }
+    }
+
     func darkSecureField(icon: String, placeholder: String, text: Binding<String>) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon).foregroundColor(Color(red: 0.6, green: 1.0, blue: 0.0)).frame(width: 20)
@@ -155,6 +181,11 @@ struct AttendeeRegisterView: View {
     }
 
     func register() {
+        if city.isEmpty {
+            errorMessage = "please select a city"
+            return
+        }
+
         let url = URL(string: "http://192.168.3.10:3000/api/auth/register/attendee")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
