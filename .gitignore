@@ -3,6 +3,5 @@ backend/node_modules
 backend/.tools/
 backend/server.log
 backend/server.err.log
-backend/recommender/models/*.joblib
 __pycache__/
 *.pyc

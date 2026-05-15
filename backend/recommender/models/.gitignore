@@ -1,2 +1,3 @@
 *
 !.gitignore
+!jadwal_lightfm.joblib
