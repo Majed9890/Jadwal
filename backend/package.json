@@ -7,6 +7,7 @@
     "reco:train": "node scripts/trainRecommendations.js",
     "reco:demo": "node scripts/demoRecommendations.js",
     "reco:evaluate": "node scripts/evaluateRecommendations.js",
+    "seed:demo": "node scripts/seedDemoData.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
