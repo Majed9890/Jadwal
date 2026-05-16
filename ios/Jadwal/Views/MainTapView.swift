@@ -31,7 +31,7 @@ struct MainTabView: View {
                     .tabItem { Image(systemName: "person.badge.clock.fill"); Text("Organizers") }
                 PendingEventsView()
                     .tabItem { Image(systemName: "clock.fill"); Text("Events") }
-                GlobalAnalyticsView()
+                GlobalAnalyticsView(isLoggedIn: $isLoggedIn)
                     .tabItem { Image(systemName: "chart.pie.fill"); Text("Analytics") }
             }
         }

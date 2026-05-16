@@ -2,6 +2,7 @@ import SwiftUI
 import Charts
 
 struct GlobalAnalyticsView: View {
+    @Binding var isLoggedIn: Bool
     @State private var totalAttendees = 0
     @State private var totalOrganizers = 0
     @State private var totalTickets = 0
@@ -32,6 +33,23 @@ struct GlobalAnalyticsView: View {
             }
             .navigationTitle("Analytics")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        AuthManager.shared.logout()
+                        isLoggedIn = false
+                    }) {
+                        Text("Sign Out")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.red)
+                            .cornerRadius(10)
+                    }
+                }
+            }
             .onAppear { fetchAnalytics() }
         }
     }
@@ -279,4 +297,4 @@ struct GlobalAnalyticsView: View {
     }
 }
 
-#Preview { GlobalAnalyticsView() }
+#Preview { GlobalAnalyticsView(isLoggedIn: .constant(true)) }
