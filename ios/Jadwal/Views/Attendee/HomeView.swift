@@ -187,24 +187,28 @@ struct EventCardView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            if let imageUrl = event["image_url"] as? String, !imageUrl.isEmpty, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Color(red: 0.15, green: 0.18, blue: 0.15)
+            if let url = eventImageURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        imagePlaceholder
+                    case .empty:
+                        Color(red: 0.15, green: 0.18, blue: 0.15)
+                    @unknown default:
+                        imagePlaceholder
+                    }
                 }
+                .frame(maxWidth: .infinity)
                 .frame(height: 220)
                 .clipped()
             } else {
-                ZStack {
-                    Color(red: 0.15, green: 0.18, blue: 0.15)
-                        .frame(height: 220)
-                    Image(systemName: "calendar")
-                        .font(.system(size: 40))
-                        .foregroundColor(.white.opacity(0.2))
-                }
+                imagePlaceholder
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 220)
             }
 
             LinearGradient(
@@ -248,7 +252,25 @@ struct EventCardView: View {
             }
             .padding(16)
         }
+        .frame(maxWidth: .infinity)
         .cornerRadius(20)
+    }
+
+    private var eventImageURL: URL? {
+        guard let imageUrl = event["image_url"] as? String, !imageUrl.isEmpty else {
+            return nil
+        }
+
+        return URL(string: imageUrl) ?? URL(string: imageUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
+    }
+
+    private var imagePlaceholder: some View {
+        ZStack {
+            Color(red: 0.15, green: 0.18, blue: 0.15)
+            Image(systemName: "calendar")
+                .font(.system(size: 40))
+                .foregroundColor(.white.opacity(0.2))
+        }
     }
 }
 
