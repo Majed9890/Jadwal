@@ -41,6 +41,17 @@ const eventTemplates = [
   ['Gaming', 'Dammam', 'Demo Dammam Gaming Expo', 55]
 ];
 
+const categoryImages = {
+  Music: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a',
+  Sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211',
+  Art: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262',
+  Technology: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c',
+  Food: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1',
+  Travel: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee',
+  Fashion: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c',
+  Gaming: 'https://images.unsplash.com/photo-1542751371-adc38448a05e'
+};
+
 function attendeeEmail(index) {
   return `demo.attendee${String(index).padStart(2, '0')}@${DEMO_DOMAIN}`;
 }
@@ -75,6 +86,11 @@ async function insertIfMissing(table, matchColumn, matchValue, row) {
     .single();
   if (error) throw new Error(`${table}: ${error.message}`);
   return { row: data, created: true };
+}
+
+function googleMapsUrl(city, eventName) {
+  const query = encodeURIComponent(`${eventName} ${city} Saudi Arabia`);
+  return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
 async function ensureOrganizer(index, passwordHash) {
@@ -150,12 +166,12 @@ async function ensureEvent(template, organizer, index) {
   const sold = 10 + (index % 6) * 3;
   const sales = sold * price;
 
-  return insertIfMissing('Event', 'event_name', eventName, {
+  const eventRow = {
     organizer_id: organizer.organizer_id,
     event_name: eventName,
     category,
     description: `${eventName} is a demo ${category.toLowerCase()} event created for Jadwal testing.`,
-    location: `${city} Convention Center`,
+    location: googleMapsUrl(city, eventName),
     city,
     district: 'Demo District',
     road_name: 'Demo Road',
@@ -164,7 +180,7 @@ async function ensureEvent(template, organizer, index) {
     time: '20:00:00',
     event_capacity: capacity,
     available_tickets: capacity - sold,
-    image_url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4',
+    image_url: `${categoryImages[category]}?auto=format&fit=crop&w=1200&q=80`,
     event_status: 'approved',
     ticket_type1_name: 'General',
     ticket_type1_price: price,
@@ -174,7 +190,32 @@ async function ensureEvent(template, organizer, index) {
     ticket_type2_capacity: price >= 80 ? 30 : null,
     ticket_sold: sold,
     sales
-  });
+  };
+
+  const { data: existing, error: findError } = await supabase
+    .from('Event')
+    .select('*')
+    .eq('event_name', eventName)
+    .maybeSingle();
+  if (findError) throw new Error(`Event: ${findError.message}`);
+  if (!existing) {
+    return insertIfMissing('Event', 'event_name', eventName, eventRow);
+  }
+
+  const { data, error } = await supabase
+    .from('Event')
+    .update({
+      location: eventRow.location,
+      image_url: eventRow.image_url,
+      category: eventRow.category,
+      city: eventRow.city,
+      event_status: 'approved'
+    })
+    .eq('event_id', existing.event_id)
+    .select()
+    .single();
+  if (error) throw new Error(`Event: ${error.message}`);
+  return { row: data, created: false };
 }
 
 async function ensureInteraction(attendeeId, eventId, interactionType, interactionValue) {
@@ -237,6 +278,11 @@ function preferredEvents(attendeeIndex, attendee, events) {
   return { primary, secondary, preferred };
 }
 
+function explorationEvents(preferred, events) {
+  const preferredIds = new Set(preferred.map((event) => event.event_id));
+  return events.filter((event) => !preferredIds.has(event.event_id));
+}
+
 async function main() {
   console.log('Seeding demo data into Supabase...');
   console.log(`Demo password for seeded accounts: ${DEMO_PASSWORD}`);
@@ -249,6 +295,7 @@ async function main() {
     interests: 0,
     likes: 0,
     views: 0,
+    explorationViews: 0,
     tickets: 0
   };
 
@@ -273,16 +320,24 @@ async function main() {
     if (attendeeResult.created) stats.attendees += 1;
 
     const { primary, secondary, preferred } = preferredEvents(index, attendee, events);
+    const exploration = explorationEvents(preferred, events);
     stats.interests += await ensureInterests(attendee, [primary, secondary]);
 
-    for (let offset = 0; offset < Math.min(6, preferred.length); offset += 1) {
+    for (let offset = 0; offset < Math.min(8, preferred.length); offset += 1) {
       const event = preferred[(index + offset) % preferred.length];
       if (offset < 2) {
         if (await ensureTicket(attendee.attendee_id, event, index * 10 + offset)) stats.tickets += 1;
-      } else if (offset < 4) {
+      } else if (offset < 5) {
         if (await ensureInteraction(attendee.attendee_id, event.event_id, 'like', 3)) stats.likes += 1;
       } else if (await ensureInteraction(attendee.attendee_id, event.event_id, 'view', 1)) {
         stats.views += 1;
+      }
+    }
+
+    for (let offset = 0; offset < Math.min(2, exploration.length); offset += 1) {
+      const event = exploration[(index + offset) % exploration.length];
+      if (await ensureInteraction(attendee.attendee_id, event.event_id, 'view', 1)) {
+        stats.explorationViews += 1;
       }
     }
   }
