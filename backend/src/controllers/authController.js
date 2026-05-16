@@ -29,21 +29,47 @@ function generateOTP() {
     return otp.toString();
 }
 
+const roleTables = [
+    { role: 'attendee', table: 'Attendee', idField: 'attendee_id' },
+    { role: 'organizer', table: 'Organizer', idField: 'organizer_id' },
+    { role: 'admin', table: 'Admin', idField: 'admin_id' }
+];
+
+const findAccountsByEmail = async (email) => {
+    const lookups = await Promise.all(roleTables.map(async (config) => {
+        const { data, error } = await supabase
+            .from(config.table)
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return data ? { ...config, user: data } : null;
+    }));
+
+    return lookups.filter(Boolean);
+};
+
 // register a new attendee
 const registerAttendee = async (req, res) => {
     const { name, email, password, phone_number, date_of_birth, gender, city } = req.body;
+    const normalizedEmail = String(email || '').trim();
 
     if (!isValidCity(city)) {
         return res.status(400).json({ error: 'please select a valid city' });
     }
 
-    const { data: existingUser } = await supabase
-        .from('Attendee')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
+    let existingAccounts = [];
+    try {
+        existingAccounts = await findAccountsByEmail(normalizedEmail);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 
-    if (existingUser) {
+    if (existingAccounts.length > 0) {
         return res.status(400).json({ error: 'this email is already registered' });
     }
 
@@ -56,7 +82,7 @@ const registerAttendee = async (req, res) => {
         .from('Attendee')
         .insert([{
             name: name,
-            email: email,
+            email: normalizedEmail,
             password: hashedPassword,
             phone_number: phone_number,
             date_of_birth: date_of_birth,
@@ -72,7 +98,7 @@ const registerAttendee = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(normalizedEmail, otp);
 
     res.status(201).json({ message: 'registered successfully, check your email for OTP' });
 };
@@ -80,14 +106,16 @@ const registerAttendee = async (req, res) => {
 // register a new organizer
 const registerOrganizer = async (req, res) => {
     const { entity_name, email, password, phone_number, license_num, address, contact_name } = req.body;
+    const normalizedEmail = String(email || '').trim();
 
-    const { data: existingUser } = await supabase
-        .from('Organizer')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
+    let existingAccounts = [];
+    try {
+        existingAccounts = await findAccountsByEmail(normalizedEmail);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 
-    if (existingUser) {
+    if (existingAccounts.length > 0) {
         return res.status(400).json({ error: 'this email is already registered' });
     }
 
@@ -100,7 +128,7 @@ const registerOrganizer = async (req, res) => {
         .from('Organizer')
         .insert([{
             entity_name: entity_name,
-            email: email,
+            email: normalizedEmail,
             password: hashedPassword,
             phone_number: phone_number,
             license_num: license_num,
@@ -117,7 +145,7 @@ const registerOrganizer = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(normalizedEmail, otp);
 
     res.status(201).json({ message: 'organizer registered, check your email for OTP' });
 };
@@ -166,34 +194,29 @@ const verifyOTP = async (req, res) => {
 
 // login for all roles
 const login = async (req, res) => {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
+    const normalizedEmail = String(email || '').trim();
 
-    let tableName = '';
-    let idField = '';
-
-    if (role === 'attendee') {
-        tableName = 'Attendee';
-        idField = 'attendee_id';
-    } else if (role === 'organizer') {
-        tableName = 'Organizer';
-        idField = 'organizer_id';
-    } else if (role === 'admin') {
-        tableName = 'Admin';
-        idField = 'admin_id';
-    } else {
-        return res.status(400).json({ error: 'invalid role' });
+    if (!normalizedEmail || !password) {
+        return res.status(400).json({ error: 'email and password are required' });
     }
 
-    const { data: user } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('email', email)
-        .maybeSingle();
+    let accounts = [];
+    try {
+        accounts = await findAccountsByEmail(normalizedEmail);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 
-    if (!user) {
+    if (accounts.length === 0) {
         return res.status(404).json({ error: 'user not found' });
     }
 
+    if (accounts.length > 1) {
+        return res.status(409).json({ error: 'this email is linked to more than one account type, please contact support' });
+    }
+
+    const { user, role, idField } = accounts[0];
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
         return res.status(401).json({ error: 'wrong password' });

@@ -3,14 +3,13 @@ import SwiftUI
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
-    @State private var selectedRole = "attendee"
+    @State private var detectedRole = ""
     @State private var isLoggedIn = false
     @State private var errorMessage = ""
-    let roles = ["attendee", "organizer", "admin"]
 
     var body: some View {
         if isLoggedIn {
-            MainTabView(role: selectedRole, isLoggedIn: $isLoggedIn)
+            MainTabView(role: detectedRole, isLoggedIn: $isLoggedIn)
         } else {
             ZStack {
                 Color(red: 0.08, green: 0.11, blue: 0.08)
@@ -80,39 +79,6 @@ struct LoginView: View {
                             .background(Color.white.opacity(0.07))
                             .cornerRadius(16)
 
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text("I am a...")
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white.opacity(0.5))
-
-                                HStack(spacing: 10) {
-                                    ForEach(roles, id: \.self) { role in
-                                        Button(action: {
-                                            selectedRole = role
-                                        }) {
-                                            Text(role.capitalized)
-                                                .font(.subheadline)
-                                                .fontWeight(.semibold)
-                                                .frame(maxWidth: .infinity)
-                                                .padding(.vertical, 12)
-                                                .background(
-                                                    selectedRole == role ?
-                                                    Color(red: 0.6, green: 1.0, blue: 0.0) :
-                                                    Color.white.opacity(0.07)
-                                                )
-                                                .foregroundColor(
-                                                    selectedRole == role ?
-                                                    Color(red: 0.08, green: 0.11, blue: 0.08) :
-                                                    Color.white.opacity(0.6)
-                                                )
-                                                .cornerRadius(12)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.top, 6)
-
                             if !errorMessage.isEmpty {
                                 HStack {
                                     Image(systemName: "exclamationmark.circle.fill")
@@ -168,8 +134,7 @@ struct LoginView: View {
 
         let body: [String: Any] = [
             "email": email,
-            "password": password,
-            "role": selectedRole
+            "password": password
         ]
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -186,9 +151,11 @@ struct LoginView: View {
 
             if let result = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 DispatchQueue.main.async {
-                    if let token = result["token"] as? String {
+                    if let token = result["token"] as? String,
+                       let role = result["role"] as? String {
                         AuthManager.shared.token = token
-                        AuthManager.shared.role = selectedRole
+                        AuthManager.shared.role = role
+                        detectedRole = role
                         isLoggedIn = true
                     } else if let err = result["error"] as? String {
                         errorMessage = err
