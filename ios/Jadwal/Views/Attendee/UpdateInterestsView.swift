@@ -105,7 +105,7 @@ struct UpdateInterestsView: View {
     }
 
     func fetchInterests() {
-        let url = URL(string: "http://192.168.3.10:3000/api/attendee/profile")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/attendee/profile")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -120,7 +120,7 @@ struct UpdateInterestsView: View {
     }
 
     func saveInterests() {
-        let url = URL(string: "http://192.168.3.10:3000/api/attendee/update-interests")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/attendee/update-interests")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

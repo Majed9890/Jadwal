@@ -132,7 +132,7 @@ struct PendingOrganizersView: View {
     }
 
     func fetchOrganizers() {
-        let url = URL(string: "http://192.168.3.10:3000/api/admin/organizers/pending")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/admin/organizers/pending")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -146,7 +146,7 @@ struct PendingOrganizersView: View {
     }
 
     func updateStatus(organizer_id: String, status: String) {
-        let url = URL(string: "http://192.168.3.10:3000/api/admin/organizers/status")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/admin/organizers/status")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

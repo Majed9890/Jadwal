@@ -74,7 +74,7 @@ struct NotificationsView: View {
     }
 
     func fetchNotifications() {
-        let url = URL(string: "http://192.168.3.10:3000/api/notifications")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/notifications")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")

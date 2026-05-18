@@ -152,7 +152,7 @@ struct QRCodeView: View {
 
     func refreshOTP() {
         guard let ticketId = ticket["ticket_id"] as? String else { return }
-        let url = URL(string: "http://192.168.3.10:3000/api/tickets/refresh-otp")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/tickets/refresh-otp")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -164,7 +164,7 @@ struct QRCodeView: View {
 
     func viewQRCode() {
         guard let ticketId = ticket["ticket_id"] as? String else { return }
-        let url = URL(string: "http://192.168.3.10:3000/api/tickets/qr-code")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/tickets/qr-code")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

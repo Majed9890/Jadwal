@@ -221,7 +221,7 @@ struct PurchaseTicketView: View {
 
     func purchaseTicket() {
         guard let eventId = event["event_id"] as? String else { return }
-        let url = URL(string: "http://192.168.3.10:3000/api/tickets/purchase")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/tickets/purchase")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

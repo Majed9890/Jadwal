@@ -108,7 +108,7 @@ struct OrganizerProfileView: View {
     }
 
     func fetchProfile() {
-        let url = URL(string: "http://192.168.3.10:3000/api/organizer/profile")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/organizer/profile")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -128,7 +128,7 @@ struct OrganizerProfileView: View {
     }
 
     func saveProfile() {
-        let url = URL(string: "http://192.168.3.10:3000/api/organizer/edit-profile")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/organizer/edit-profile")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

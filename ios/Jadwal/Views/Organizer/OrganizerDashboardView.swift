@@ -427,7 +427,7 @@ struct OrganizerDashboardView: View {
 
     // MARK: - Networking
     func fetchAllEvents() {
-        let url = URL(string: "http://192.168.3.10:3000/api/events/my-events")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/events/my-events")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -445,7 +445,7 @@ struct OrganizerDashboardView: View {
     }
 
     func fetchDashboard(eventId: String?) {
-        var urlString = "http://192.168.3.10:3000/api/events/dashboard"
+        var urlString = "\(APIConfig.baseURL)/api/events/dashboard"
         if let id = eventId { urlString += "?event_id=\(id)" }
         let url = URL(string: urlString)!
         var request = URLRequest(url: url)
@@ -465,7 +465,7 @@ struct OrganizerDashboardView: View {
         for event in allEvents {
             guard let eventId = event["event_id"] as? String,
                   let eventName = event["event_name"] as? String else { continue }
-            let url = URL(string: "http://192.168.3.10:3000/api/events/gender-stats/\(eventId)")!
+            let url = URL(string: "\(APIConfig.baseURL)/api/events/gender-stats/\(eventId)")!
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -484,7 +484,7 @@ struct OrganizerDashboardView: View {
     }
 
     func fetchSingleGenderStats(eventId: String, eventName: String) {
-        let url = URL(string: "http://192.168.3.10:3000/api/events/gender-stats/\(eventId)")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/events/gender-stats/\(eventId)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -502,7 +502,7 @@ struct OrganizerDashboardView: View {
     }
 
     func fetchEventStats(eventId: String) {
-        let url = URL(string: "http://192.168.3.10:3000/api/events/stats/\(eventId)")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/events/stats/\(eventId)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")

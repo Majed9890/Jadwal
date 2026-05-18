@@ -114,7 +114,7 @@ struct QRScannerView: View {
               let ticketId = qrInfo["ticket_id"] as? String else {
             resultMessage = "Invalid QR code"; resultSuccess = false; return
         }
-        let url = URL(string: "http://192.168.3.10:3000/api/tickets/checkin")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/tickets/checkin")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

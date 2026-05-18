@@ -139,7 +139,7 @@ struct HomeView: View {
     }
 
     func fetchEvents() {
-        let url = URL(string: "http://192.168.3.10:3000/api/events/recommended")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/events/recommended")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -163,7 +163,7 @@ struct HomeView: View {
 
     func searchEvents() {
         let keyword = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let url = URL(string: "http://192.168.3.10:3000/api/events/search?keyword=\(keyword)")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/events/search?keyword=\(keyword)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")

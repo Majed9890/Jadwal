@@ -245,7 +245,7 @@ struct EventDetailsView: View {
     func checkLike() {
         guard let eventId = event["event_id"] as? String else { return }
 
-        let url = URL(string: "http://192.168.3.10:3000/api/attendee/check-like/\(eventId)")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/attendee/check-like/\(eventId)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(AuthManager.shared.token)", forHTTPHeaderField: "Authorization")
@@ -264,7 +264,7 @@ struct EventDetailsView: View {
     func likeEvent() {
         guard let eventId = event["event_id"] as? String else { return }
 
-        let url = URL(string: "http://192.168.3.10:3000/api/attendee/like-event")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/attendee/like-event")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -288,7 +288,7 @@ struct EventDetailsView: View {
         guard !didRecordView, let eventId = event["event_id"] as? String else { return }
         didRecordView = true
 
-        let url = URL(string: "http://192.168.3.10:3000/api/attendee/event-view")!
+        let url = URL(string: "\(APIConfig.baseURL)/api/attendee/event-view")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
